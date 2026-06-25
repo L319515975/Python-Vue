@@ -114,6 +114,10 @@ OPENAI_MODEL=gpt-3.5-turbo
 
 初始化数据后，zhangsan 的简历自动生成 HR 访客分享链接（有效期30天，允许下载，AI配额10次）。
 
+
+## 数据库设计
+
+完整的数据库表结构与关系图请查看 [docs/DATABASE.md](docs/DATABASE.md)。
 ## 项目结构
 
 ```
