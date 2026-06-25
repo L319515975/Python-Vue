@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 2cm 2.5cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: sans-serif; font-size: 11pt; color: #333; line-height: 1.6; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: avoid; }
+  .header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #2c5aa0; padding-bottom: 16px; }
+  .header h1 { font-size: 24pt; color: #2c5aa0; margin-bottom: 4px; }
+  .header .title { font-size: 14pt; color: #555; margin-bottom: 8px; }
+  .contact-row { display: flex; justify-content: center; gap: 24px; font-size: 10pt; color: #666; }
+  .summary { margin-top: 12px; font-size: 10.5pt; color: #444; text-align: left; padding: 0 20px; }
+  .section { margin-bottom: 20px; }
+  .section h2 { font-size: 14pt; color: #2c5aa0; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 12px; }
+  .item { margin-bottom: 14px; }
+  .item-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .item-title { font-size: 12pt; font-weight: bold; color: #222; }
+  .item-subtitle { font-size: 10.5pt; color: #555; }
+  .item-date { font-size: 10pt; color: #888; }
+  .item-desc { font-size: 10.5pt; color: #444; margin-top: 4px; white-space: pre-wrap; }
+  .item-meta { font-size: 10pt; color: #666; margin-top: 2px; }
+  .skill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-tag { display: inline-block; background: #e8f0fe; color: #2c5aa0; padding: 4px 12px; border-radius: 4px; font-size: 10pt; }
+  .skill-bar { display: inline-block; width: 60px; height: 6px; background: #ddd; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+  .skill-fill { display: block; height: 100%; background: #2c5aa0; border-radius: 3px; }
+  .text-content { font-size: 10.5pt; color: #444; white-space: pre-wrap; line-height: 1.8; }
+  .footer { text-align: center; font-size: 9pt; color: #aaa; margin-top: 40px; }
+</style>
+</head>
+<body>
+{% for module in modules %}
+<div class="page">
+  {% if module.key == "personal_info" %}
+    <div class="header">
+      <h1>{{ module.username }}</h1>
+      <div class="title">{{ module.title }}</div>
+      <div class="contact-row">
+        <span>邮箱: {{ module.email }}</span>
+        <span>电话: {{ module.phone }}</span>
+      </div>
+      {% if module.summary %}
+      <div class="summary">{{ module.summary }}</div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="section">
+      <h2>{{ module.name }}</h2>
+      {% if module.type == "list" %}
+        {% for item in module.items %}
+        <div class="item">
+          <div class="item-header">
+            {% if item.school %}
+              <span class="item-title">{{ item.school }}</span>
+              <span class="item-date">{{ item.start_date|default:"" }} ~ {{ item.end_date|default:"至今" }}</span>
+            {% elif item.company %}
+              <span class="item-title">{{ item.company }} - {{ item.position|default:"" }}</span>
+              <span class="item-date">{{ item.start_date|default:"" }} ~ {{ item.end_date|default:"至今" }}</span>
+            {% elif item.name %}
+              <span class="item-title">{{ item.name }}{% if item.role %} ({{ item.role }}){% endif %}</span>
+              <span class="item-date">{{ item.start_date|default:"" }} ~ {{ item.end_date|default:"至今" }}</span>
+            {% endif %}
+          </div>
+          {% if item.degree %}<div class="item-subtitle">{{ item.degree }} | {{ item.major|default:"" }}</div>{% endif %}
+          {% if item.tech_stack %}<div class="item-meta">技术栈: {{ item.tech_stack }}</div>{% endif %}
+          {% if item.description %}<div class="item-desc">{{ item.description }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      {% elif module.type == "skills" %}
+        <div class="skill-grid">
+          {% for item in module.items %}
+          <span class="skill-tag">
+            {{ item.name }} ({{ item.level }}%)
+            <span class="skill-bar"><span class="skill-fill" style="width: {{ item.level }}%"></span></span>
+          </span>
+          {% endfor %}
+        </div>
+      {% elif module.type == "text" %}
+        <div class="text-content">{{ module.content|default:"暂无内容" }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if forloop.last %}
+  <div class="footer">由智能简历管理系统生成</div>
+  {% endif %}
+</div>
+{% endfor %}
+</body>
+</html>
