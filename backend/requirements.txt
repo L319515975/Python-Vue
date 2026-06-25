@@ -11,3 +11,4 @@ gunicorn>=21.2
 weasyprint>=60.0
 python-docx>=0.8.11
 PyMuPDF>=1.23.0
+drf-yasg>=1.21
