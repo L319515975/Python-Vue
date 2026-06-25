@@ -23,27 +23,6 @@ class Tag(models.Model):
         verbose_name='标签类型',
     )
     is_system = models.BooleanField(default=True, verbose_name='系统级标签')
-    # HR visitor mode fields
-    visitor_hr_enabled = models.BooleanField(
-        default=False,
-        help_text='是否启用HR模式（HR可通过链接使用AI助手）',
-        verbose_name='HR模式启用',
-    )
-    visitor_ai_enabled = models.BooleanField(
-        default=True,
-        help_text='HR游客是否可使用AI功能',
-        verbose_name='HR AI功能开关',
-    )
-    visitor_ai_quota = models.IntegerField(
-        default=10,
-        help_text='HR游客AI调用总配额',
-        verbose_name='HR AI调用配额',
-    )
-    visitor_ai_used = models.IntegerField(
-        default=0,
-        help_text='HR游客已使用的AI调用次数',
-        verbose_name='HR AI已用次数',
-    )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
 
@@ -148,6 +127,27 @@ class Resume(models.Model):
         blank=True,
         help_text='对游客公开的模块列表，为空则公开所有已启用模块',
         verbose_name='公开模块列表',
+    )
+    # HR visitor mode fields
+    visitor_hr_enabled = models.BooleanField(
+        default=False,
+        help_text='是否启用HR模式（HR可通过链接使用AI助手）',
+        verbose_name='HR模式启用',
+    )
+    visitor_ai_enabled = models.BooleanField(
+        default=True,
+        help_text='HR游客是否可使用AI功能',
+        verbose_name='HR AI功能开关',
+    )
+    visitor_ai_quota = models.IntegerField(
+        default=10,
+        help_text='HR游客AI调用总配额',
+        verbose_name='HR AI调用配额',
+    )
+    visitor_ai_used = models.IntegerField(
+        default=0,
+        help_text='HR游客已使用的AI调用次数',
+        verbose_name='HR AI已用次数',
     )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -322,6 +322,7 @@ class Skill(models.Model):
     def __str__(self):
         return f'{self.name} ({self.level}%)'
 
+
 class HRAiUsageLog(models.Model):
     """Records HR visitor AI usage for auditing and quota tracking."""
 
@@ -370,4 +371,3 @@ class HRAiUsageLog(models.Model):
 
     def __str__(self):
         return f'HR({self.visitor_token[:8]}) {self.get_call_type_display()} - {self.created_at}'
-

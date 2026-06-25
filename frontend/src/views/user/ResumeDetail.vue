@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="resume-detail" v-loading="loading">
     <template v-if="resume">
       <el-card class="resume-header-card">
@@ -85,14 +85,14 @@
         <template #header>
           <div class="section-header">
             <el-icon><Share /></el-icon>
-            <span>游客分享链接</span>
+            <span>访客分享链接</span>
             <el-tag v-if="visitorLink.visitor_enabled" type="success" size="small" style="margin-left: 8px">已启用</el-tag>
             <el-tag v-else type="info" size="small" style="margin-left: 8px">未启用</el-tag>
           </div>
         </template>
         <div v-if="visitorLink.visitor_enabled && visitorLink.visitor_url" class="visitor-link-display">
           <el-alert type="success" :closable="false" show-icon style="margin-bottom: 16px">
-            <template #title>游客可通过以下链接查看您的公开简历模块</template>
+            <template #title>访客可通过以下链接查看您的公开简历模块</template>
             <template #default v-if="visitorLink.visitor_expires">有效期至: {{ formatDate(visitorLink.visitor_expires) }}</template>
           </el-alert>
           <el-input :model-value="visitorLink.visitor_url" readonly class="visitor-url-input">
@@ -101,10 +101,10 @@
         </div>
         <el-divider />
         <el-form label-width="120px" size="default" style="max-width: 600px">
-          <el-form-item label="启用游客链接">
+          <el-form-item label="启用访客链接">
             <el-switch v-model="visitorForm.enabled" active-text="启用" inactive-text="禁用" />
           </el-form-item>
-          <el-form-item label="有效期(天)">
+          <el-form-item label="有效期（天）">
             <el-input-number v-model="visitorForm.expires_days" :min="1" :max="365" :disabled="!visitorForm.enabled" />
           </el-form-item>
           <el-form-item label="允许下载PDF">
@@ -114,9 +114,9 @@
             <el-checkbox-group v-model="visitorForm.public_modules" :disabled="!visitorForm.enabled">
               <el-checkbox v-for="mod in availableModules" :key="mod.value" :label="mod.value">{{ mod.label }}</el-checkbox>
             </el-checkbox-group>
-            <div class="form-tip">选择对游客可见的模块，不选则公开所有已启用模块</div>
+            <div class="form-tip">选择对访客可见的模块，不选则公开所有已启用模块</div>
           </el-form-item>
-                    <el-form-item label="启用HR模式">
+          <el-form-item label="启用HR模式">
             <el-switch v-model="visitorForm.hr_enabled" active-text="启用" inactive-text="禁用" :disabled="!visitorForm.enabled" />
             <div class="form-tip">启用后HR可通过链接使用AI助手</div>
           </el-form-item>
@@ -191,7 +191,7 @@ async function loadVisitorLinkInfo() {
 async function saveVisitorLink() {
   if (!resume.value || !resume.value.id) return
   visitorSaving.value = true
-  try { const data = { enabled: visitorForm.enabled, expires_days: visitorForm.expires_days, allow_download: visitorForm.allow_download, public_modules: visitorForm.public_modules, hr_enabled: visitorForm.hr_enabled, ai_enabled: visitorForm.ai_enabled, ai_quota: visitorForm.ai_quota }; const r = await resumeApi.generateVisitorLink(resume.value.id, data); visitorLink.value = r; ElMessage.success(r.visitor_url ? '游客链接已更新' : '设置已保存') }
+  try { const data = { enabled: visitorForm.enabled, expires_days: visitorForm.expires_days, allow_download: visitorForm.allow_download, public_modules: visitorForm.public_modules, hr_enabled: visitorForm.hr_enabled, ai_enabled: visitorForm.ai_enabled, ai_quota: visitorForm.ai_quota }; const r = await resumeApi.generateVisitorLink(resume.value.id, data); visitorLink.value = r; ElMessage.success(r.visitor_url ? '访客链接已更新' : '设置已保存') }
   catch (e) { ElMessage.error(e.response?.data?.detail || '操作失败') }
   finally { visitorSaving.value = false }
 }
@@ -199,7 +199,7 @@ async function saveVisitorLink() {
 async function disableVisitorLink() {
   if (!resume.value || !resume.value.id) return
   visitorSaving.value = true
-  try { const r = await resumeApi.disableVisitorLink(resume.value.id); visitorLink.value = r; visitorForm.enabled = false; ElMessage.success('游客链接已禁用') }
+  try { const r = await resumeApi.disableVisitorLink(resume.value.id); visitorLink.value = r; visitorForm.enabled = false; ElMessage.success('访客链接已禁用') }
   catch (e) { ElMessage.error(e.response?.data?.detail || '操作失败') }
   finally { visitorSaving.value = false }
 }
@@ -213,18 +213,24 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.resume-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.resume-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
 .summary { margin-top: 12px; color: #666; line-height: 1.6; }
 .section-header { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
-.project-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.project-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .project-item h4 { margin-bottom: 4px; }
 .skills-grid { display: flex; flex-direction: column; gap: 20px; }
 .skill-category { margin-bottom: 10px; color: #333; font-size: 14px; }
-.skill-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.skill-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
 .skill-item { display: flex; flex-direction: column; gap: 4px; }
 .skill-name { font-size: 13px; color: #666; }
 .module-content { white-space: pre-wrap; line-height: 1.8; color: #333; font-size: 14px; }
 .visitor-link-display { margin-bottom: 16px; }
 .visitor-url-input { max-width: 100%; }
 .form-tip { font-size: 12px; color: #909399; margin-top: 4px; }
+
+@media (max-width: 768px) {
+  .resume-header { flex-direction: column; }
+  .project-list { grid-template-columns: 1fr; }
+  .skill-items { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
 </style>

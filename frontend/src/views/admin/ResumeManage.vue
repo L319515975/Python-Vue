@@ -55,26 +55,25 @@
         :total="total"
         :page-size="pageSize"
         :current-page="currentPage"
-        style="margin-top: 16px; justify-content: flex-end"
+        class="pagination"
         @current-change="p => { currentPage = p; loadResumes() }"
       />
     </el-card>
 
     <!-- Detail Drawer -->
-    <el-drawer v-model="drawerVisible" :title="currentResume?.title || '简历详情'" size="600px">
+    <el-drawer v-model="drawerVisible" :title="currentResume?.title || '简历详情'" :size="isMobile ? '90%' : '600px'">
       <template v-if="currentResume">
-        <el-descriptions :column="2" border>
+        <el-descriptions :column="isMobile ? 1 : 2" border>
           <el-descriptions-item label="用户">{{ currentResume.username }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="currentResume.status === 'published' ? 'success' : 'info'" size="small">
               {{ currentResume.status === 'published' ? '已发布' : '草稿' }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="简介" :span="2">{{ currentResume.summary || '暂无' }}</el-descriptions-item>
-          <el-descriptions-item label="文件" :span="2">{{ currentResume.file_name || '未上传' }}</el-descriptions-item>
+          <el-descriptions-item label="简介" :span="isMobile ? 1 : 2">{{ currentResume.summary || '暂无' }}</el-descriptions-item>
+          <el-descriptions-item label="文件" :span="isMobile ? 1 : 2">{{ currentResume.file_name || '未上传' }}</el-descriptions-item>
         </el-descriptions>
 
-        <!-- Education -->
         <h4 style="margin: 16px 0 8px">教育经历</h4>
         <el-timeline v-if="detailData.educations?.length">
           <el-timeline-item v-for="edu in detailData.educations" :key="edu.id" :timestamp="edu.start_date">
@@ -83,7 +82,6 @@
         </el-timeline>
         <el-empty v-else description="暂无" :image-size="60" />
 
-        <!-- Work -->
         <h4 style="margin: 16px 0 8px">工作经历</h4>
         <el-timeline v-if="detailData.work_experiences?.length">
           <el-timeline-item v-for="w in detailData.work_experiences" :key="w.id" :timestamp="w.start_date">
@@ -93,7 +91,6 @@
         </el-timeline>
         <el-empty v-else description="暂无" :image-size="60" />
 
-        <!-- Projects -->
         <h4 style="margin: 16px 0 8px">项目经历</h4>
         <el-timeline v-if="detailData.projects?.length">
           <el-timeline-item v-for="p in detailData.projects" :key="p.id" :timestamp="p.start_date">
@@ -104,7 +101,6 @@
         </el-timeline>
         <el-empty v-else description="暂无" :image-size="60" />
 
-        <!-- Skills -->
         <h4 style="margin: 16px 0 8px">技能</h4>
         <div v-if="detailData.skills?.length" style="display: flex; flex-wrap: wrap; gap: 8px">
           <el-tag v-for="s in detailData.skills" :key="s.id">
@@ -118,9 +114,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { resumeApi } from '@/api'
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const resumes = ref([])
 const loading = ref(false)
 const total = ref(0)
@@ -166,5 +163,15 @@ onMounted(loadResumes)
 }
 .search-form {
   margin-bottom: 16px;
+}
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .search-form :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
 }
 </style>

@@ -184,4 +184,23 @@ function handleClose() {
   border-radius: 2px;
   font-weight: 500;
 }
+
+@media (max-width: 768px) {
+  .el-dialog {
+    width: 95% !important;
+    margin: 10px auto !important;
+  }
+  .el-row {
+    flex-direction: column;
+  }
+  .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 12px;
+  }
+  .diff-box {
+    min-height: 80px;
+    max-height: 200px;
+  }
+}
 </style>

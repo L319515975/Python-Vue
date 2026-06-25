@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>标签管理</span>
-          <div style="display: flex; gap: 8px">
+          <div class="header-actions">
             <el-select v-model="filterType" placeholder="筛选类型" clearable style="width: 140px" @change="loadTags">
               <el-option v-for="t in tagTypes" :key="t.value" :label="t.label" :value="t.value" />
             </el-select>
@@ -49,13 +49,13 @@
         :total="total"
         :page-size="pageSize"
         :current-page="currentPage"
-        style="margin-top: 16px; justify-content: flex-end"
+        class="pagination"
         @current-change="p => { currentPage = p; loadTags() }"
       />
     </el-card>
 
     <!-- Create/Edit Dialog -->
-    <el-dialog v-model="dialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" width="400px">
+    <el-dialog v-model="dialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" :width="isMobile ? '95%' : '400px'">
       <el-form :model="form" label-width="80px">
         <el-form-item label="标签名称" required>
           <el-input v-model="form.name" placeholder="如：Python、获奖" maxlength="100" />
@@ -75,10 +75,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { tagApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const tags = ref([])
 const loading = ref(false)
 const total = ref(0)
@@ -164,5 +165,22 @@ onMounted(loadTags)
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

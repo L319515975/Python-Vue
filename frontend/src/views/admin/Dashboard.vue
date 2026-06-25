@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="dashboard">
     <el-row :gutter="20" class="stat-cards">
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-icon" style="background: #409eff20; color: #409eff">
             <el-icon :size="32"><User /></el-icon>
@@ -12,7 +12,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-icon" style="background: #67c23a20; color: #67c23a">
             <el-icon :size="32"><Document /></el-icon>
@@ -23,7 +23,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-icon" style="background: #e6a23c20; color: #e6a23c">
             <el-icon :size="32"><ChatDotRound /></el-icon>
@@ -34,7 +34,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-icon" style="background: #f56c6c20; color: #f56c6c">
             <el-icon :size="32"><Checked /></el-icon>
@@ -47,8 +47,8 @@
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" style="margin-top: 20px">
-      <el-col :span="12">
+    <el-row :gutter="20" class="detail-rows">
+      <el-col :xs="24" :md="12">
         <el-card>
           <template #header>
             <span>最近注册用户</span>
@@ -66,7 +66,7 @@
           </el-table>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col :xs="24" :md="12">
         <el-card>
           <template #header>
             <span>最近AI查询</span>
@@ -142,6 +142,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .stat-value {
@@ -154,5 +155,41 @@ onMounted(async () => {
   font-size: 14px;
   color: #999;
   margin-top: 4px;
+}
+
+.detail-rows {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .stat-card :deep(.el-card__body) {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-icon .el-icon {
+    font-size: 24px !important;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .detail-rows {
+    margin-top: 12px;
+  }
+
+  .detail-rows .el-col {
+    margin-bottom: 12px;
+  }
 }
 </style>

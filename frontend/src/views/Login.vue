@@ -132,6 +132,7 @@ async function handleLogin() {
 .login-card {
   position: relative;
   width: 420px;
+  max-width: 90vw;
   padding: 40px;
   background: #fff;
   border-radius: 12px;
@@ -175,5 +176,20 @@ async function handleLogin() {
 }
 .account-tag:hover {
   opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 24px 20px;
+    margin: 16px;
+  }
+
+  .login-header h2 {
+    font-size: 18px;
+  }
+
+  .login-header .el-icon {
+    font-size: 32px !important;
+  }
 }
 </style>

@@ -1,7 +1,10 @@
 ﻿<template>
   <el-container class="layout-container">
+    <!-- Mobile overlay -->
+    <div v-if="mobileMenuVisible" class="mobile-overlay" @click="mobileMenuVisible = false"></div>
+
     <!-- Sidebar -->
-    <el-aside :width="isCollapse ? '64px' : '220px'" class="layout-aside">
+    <el-aside :width="asideWidth" class="layout-aside" :class="{ 'mobile-aside': mobileMenuVisible }">
       <div class="logo-area">
         <el-icon :size="28" color="#409eff"><Document /></el-icon>
         <span v-show="!isCollapse" class="logo-text">简历管理系统</span>
@@ -14,6 +17,7 @@
         text-color="#ffffffb3"
         active-text-color="#409eff"
         class="side-menu"
+        @select="mobileMenuVisible = false"
       >
         <el-menu-item
           v-for="item in menuItems"
@@ -31,6 +35,11 @@
       <!-- Header -->
       <el-header class="layout-header">
         <div class="header-left">
+          <!-- Mobile hamburger -->
+          <el-icon class="hamburger-btn" :size="20" @click="mobileMenuVisible = !mobileMenuVisible">
+            <Expand />
+          </el-icon>
+          <!-- Desktop collapse -->
           <el-icon
             class="collapse-btn"
             :size="20"
@@ -74,7 +83,7 @@
     </el-container>
 
     <!-- Password Dialog -->
-    <el-dialog v-model="pwdDialogVisible" title="修改密码" width="400px">
+    <el-dialog v-model="pwdDialogVisible" title="修改密码" :width="isMobile ? '95%' : '400px'">
       <el-form :model="pwdForm" label-width="80px">
         <el-form-item label="原密码">
           <el-input v-model="pwdForm.old_password" type="password" show-password />
@@ -88,6 +97,9 @@
         <el-button type="primary" @click="handleChangePassword">确认</el-button>
       </template>
     </el-dialog>
+
+    <!-- Floating AI Assistant -->
+    <AiAssistant />
   </el-container>
 </template>
 
@@ -97,17 +109,24 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api'
 import { ElMessage } from 'element-plus'
+import AiAssistant from '@/components/AiAssistant.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const isCollapse = ref(false)
+const mobileMenuVisible = ref(false)
 const pwdDialogVisible = ref(false)
 const pwdForm = ref({ old_password: '', new_password: '' })
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const isAdmin = computed(() => userStore.isAdmin)
 const currentRoute = computed(() => route.path)
 const currentTitle = computed(() => route.meta?.title || '')
+const asideWidth = computed(() => {
+  if (isMobile.value) return mobileMenuVisible.value ? '220px' : '0px'
+  return isCollapse.value ? '64px' : '220px'
+})
 
 const menuItems = computed(() => {
   const parent = isAdmin.value ? '/admin' : '/user'
@@ -200,6 +219,13 @@ async function handleChangePassword() {
   color: #409eff;
 }
 
+/* Hamburger - hidden on desktop */
+.hamburger-btn {
+  display: none;
+  cursor: pointer;
+  color: #666;
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -221,5 +247,55 @@ async function handleChangePassword() {
   background: #f0f2f5;
   padding: 20px;
   overflow-y: auto;
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  display: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: block;
+  }
+
+  .collapse-btn {
+    display: none;
+  }
+
+  .layout-aside {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2000;
+    width: 0 !important;
+    transition: width 0.3s;
+  }
+
+  .layout-aside.mobile-aside {
+    width: 220px !important;
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1999;
+  }
+
+  .layout-header {
+    padding: 0 12px;
+  }
+
+  .layout-main {
+    padding: 12px;
+  }
+
+  .username {
+    display: none;
+  }
 }
 </style>

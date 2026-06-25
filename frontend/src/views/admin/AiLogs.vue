@@ -97,13 +97,13 @@
         :total="total"
         :page-size="pageSize"
         :current-page="currentPage"
-        style="margin-top: 16px; justify-content: flex-end"
+        class="pagination"
         @current-change="p => { currentPage = p; loadCurrentTab() }"
       />
     </el-card>
 
     <!-- Query Detail Dialog -->
-    <el-dialog v-model="queryDetailVisible" title="查询详情" width="600px">
+    <el-dialog v-model="queryDetailVisible" title="查询详情" :width="isMobile ? '95%' : '600px'">
       <template v-if="currentQueryLog">
         <h4>用户查询:</h4>
         <p style="background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 16px">
@@ -120,16 +120,16 @@
     </el-dialog>
 
     <!-- Polish Detail Dialog -->
-    <el-dialog v-model="polishDetailVisible" title="润色详情" width="700px">
+    <el-dialog v-model="polishDetailVisible" title="润色详情" :width="isMobile ? '95%' : '700px'">
       <template v-if="currentPolishLog">
         <el-row :gutter="16">
-          <el-col :span="12">
+          <el-col :xs="24" :sm="12">
             <h4>原始文本:</h4>
             <div style="background: #fafafa; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px">
               {{ currentPolishLog.original_text }}
             </div>
           </el-col>
-          <el-col :span="12">
+          <el-col :xs="24" :sm="12">
             <h4>润色结果:</h4>
             <div style="background: #f0f9eb; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px">
               {{ currentPolishLog.polished_text }}
@@ -143,7 +143,7 @@
     </el-dialog>
 
     <!-- Classification Detail Dialog -->
-    <el-dialog v-model="classDetailVisible" title="归类详情" width="600px">
+    <el-dialog v-model="classDetailVisible" title="归类详情" :width="isMobile ? '95%' : '600px'">
       <template v-if="currentClassLog">
         <h4>文件: {{ currentClassLog.file_name }}</h4>
         <h4 style="margin-top: 12px">归类结果:</h4>
@@ -159,9 +159,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { aiApi } from '@/api'
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const activeTab = ref('query')
 const loading = ref(false)
 const total = ref(0)
@@ -243,3 +244,33 @@ function showClassificationDetail(row) {
 
 onMounted(loadCurrentTab)
 </script>
+
+<style scoped>
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .el-table {
+    font-size: 12px;
+  }
+  .el-table-column--mini {
+    width: auto !important;
+  }
+  .pagination {
+    justify-content: center;
+  }
+  .el-dialog {
+    width: 95% !important;
+  }
+  .el-row {
+    flex-direction: column;
+  }
+  .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 12px;
+  }
+}
+</style>

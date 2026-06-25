@@ -64,7 +64,7 @@
         :total="total"
         :page-size="pageSize"
         :current-page="currentPage"
-        style="margin-top: 16px; justify-content: flex-end"
+        class="pagination"
         @current-change="handlePageChange"
       />
     </el-card>
@@ -73,7 +73,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="editingUser ? '编辑用户' : '新增用户'"
-      width="500px"
+      :width="isMobile ? '95%' : '500px'"
     >
       <el-form :model="form" label-width="80px" :rules="formRules" ref="formRef">
         <el-form-item label="用户名" prop="username">
@@ -110,10 +110,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { userApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const users = ref([])
 const loading = ref(false)
 const total = ref(0)
@@ -207,5 +208,15 @@ onMounted(loadUsers)
 }
 .search-form {
   margin-bottom: 16px;
+}
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .search-form :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
 }
 </style>

@@ -77,12 +77,6 @@ const routes = [
         component: () => import('@/views/user/ResumeEdit.vue'),
         meta: { title: '编辑简历', icon: 'Edit' },
       },
-      {
-        path: 'ai-chat',
-        name: 'AiChat',
-        component: () => import('@/views/user/AiChat.vue'),
-        meta: { title: 'AI助手', icon: 'ChatDotRound' },
-      },
     ],
   },
   {
@@ -128,4 +122,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="visitor-page" v-loading="loading">
     <template v-if="resume">
       <!-- Quota Banner for HR mode -->
@@ -143,7 +143,7 @@
             <div v-if="chatMessages.length === 0" class="ai-empty">
               <el-icon :size="40" color="#c0c4cc"><ChatDotRound /></el-icon>
               <p>向AI助手提问关于该候选人的问题</p>
-              <p class="ai-hint">例如：“该候选人适合哪些岗位？”“技能优势是什么？”</p>
+              <p class="ai-hint">例如："该候选人适合哪些岗位？""技能优势是什么？"</p>
             </div>
             <div v-for="(msg, i) in chatMessages" :key="i" :class="['chat-msg', msg.role]">
               <div class="msg-avatar">
@@ -166,7 +166,7 @@
               v-model="chatInput"
               type="textarea"
               :rows="2"
-              placeholder="输入您的问题，如“该候选人适合哪些岗位？”"
+              placeholder="输入您的问题，如"该候选人适合哪些岗位？""
               :disabled="aiRemaining <= 0 || aiLoading"
               @keydown.enter.ctrl="sendChat"
             />
@@ -218,7 +218,7 @@
               :closable="false"
               show-icon
               title="配额已用尽"
-              description="AI调用次数已达上限，请联系招聘方或管理员申请更多次数"
+              description="AI调用次数已达上限，请联系招聘方或管理员申请更多次数。"
             />
           </div>
         </div>
@@ -377,13 +377,11 @@ onMounted(async () => {
       sig: route.query.sig || '',
       expires: route.query.expires || 0,
     }
-    // Include role param if present
     if (route.query.role) {
       params.role = route.query.role
     }
     const data = await visitorApi.getResume(token, params)
     resume.value = data
-    // Set HR quota info
     if (data.hr_enabled) {
       aiRemaining.value = data.ai_remaining || 0
       aiTotal.value = data.ai_quota || 0
@@ -804,23 +802,22 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
+  .visitor-header {
+    padding: 32px 16px;
+  }
   .resume-title {
     font-size: 24px;
   }
-
   .timeline-item {
     flex-direction: column;
     gap: 4px;
   }
-
   .timeline-date {
     min-width: auto;
   }
-
   .project-grid {
     grid-template-columns: 1fr;
   }
-
   .skills-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }

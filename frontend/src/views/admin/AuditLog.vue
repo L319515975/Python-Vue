@@ -1,17 +1,17 @@
-<template>
+﻿<template>
   <div>
     <el-tabs v-model="activeTab">
       <!-- Admin Audit Logs -->
       <el-tab-pane label="操作审计" name="audit">
         <el-card>
           <template #header>
-            <div style="display: flex; justify-content: space-between; align-items: center">
+            <div class="card-header">
               <span>操作审计日志</span>
               <el-button icon="Refresh" @click="loadLogs">刷新</el-button>
             </div>
           </template>
 
-          <el-form :inline="true" size="small" style="margin-bottom: 16px">
+          <el-form :inline="true" size="small" class="filter-form">
             <el-form-item label="操作类型">
               <el-select v-model="filters.action" clearable placeholder="全部" style="width: 150px">
                 <el-option v-for="opt in actionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
@@ -47,7 +47,7 @@
 
           <el-pagination
             v-if="total > 0"
-            style="margin-top: 16px; justify-content: flex-end"
+            class="pagination"
             :current-page="page"
             :page-size="pageSize"
             :total="total"
@@ -63,13 +63,13 @@
       <el-tab-pane label="HR AI使用日志" name="hr-ai">
         <el-card>
           <template #header>
-            <div style="display: flex; justify-content: space-between; align-items: center">
+            <div class="card-header">
               <span>HR AI调用日志</span>
               <el-button icon="Refresh" @click="loadHrLogs">刷新</el-button>
             </div>
           </template>
 
-          <el-form :inline="true" size="small" style="margin-bottom: 16px">
+          <el-form :inline="true" size="small" class="filter-form">
             <el-form-item label="调用类型">
               <el-select v-model="hrFilters.call_type" clearable placeholder="全部" style="width: 120px">
                 <el-option label="AI咨询" value="chat" />
@@ -104,7 +104,7 @@
 
           <el-pagination
             v-if="hrTotal > 0"
-            style="margin-top: 16px; justify-content: flex-end"
+            class="pagination"
             :current-page="hrPage"
             :page-size="hrPageSize"
             :total="hrTotal"
@@ -234,3 +234,27 @@ onMounted(() => {
   loadHrLogs()
 })
 </script>
+
+<style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filter-form {
+  margin-bottom: 16px;
+}
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .filter-form :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
+  .filter-form :deep(.el-form-item__content) {
+    flex-wrap: wrap;
+  }
+}
+</style>

@@ -5,7 +5,7 @@
       <template #header>
         <div class="card-header">
           <span>{{ isCreate ? '创建简历' : '编辑简历' }}</span>
-          <div style="display: flex; gap: 8px">
+          <div class="header-actions">
             <el-button icon="Download" type="success" @click="showPdfDialog = true" :disabled="!resumeId">
               导出PDF
             </el-button>
@@ -14,7 +14,7 @@
         </div>
       </template>
 
-      <el-form :model="form" label-width="100px" style="max-width: 700px">
+      <el-form :model="form" label-width="100px" class="edit-form">
         <el-divider content-position="left">基本信息</el-divider>
         <el-form-item label="简历标题">
           <el-input v-model="form.title" placeholder="如：张三的简历" />
@@ -211,7 +211,7 @@
       </div>
     </el-card>
 
-    <!-- Module Data Section (certificate, award, language, etc.) -->
+    <!-- Module Data Section -->
     <template v-if="resumeId">
       <el-card
         v-for="mod in moduleDataKeys"
@@ -251,7 +251,7 @@
     </template>
 
     <!-- Education Dialog -->
-    <el-dialog v-model="eduDialog" :title="editingEdu ? '编辑教育经历' : '添加教育经历'" width="500px">
+    <el-dialog v-model="eduDialog" :title="editingEdu ? '编辑教育经历' : '添加教育经历'" :width="isMobile ? '95%' : '500px'">
       <el-form :model="eduForm" label-width="80px">
         <el-form-item label="学校"><el-input v-model="eduForm.school" /></el-form-item>
         <el-form-item label="学位">
@@ -271,7 +271,7 @@
     </el-dialog>
 
     <!-- Work Dialog -->
-    <el-dialog v-model="workDialog" :title="editingWork ? '编辑工作经历' : '添加工作经历'" width="500px">
+    <el-dialog v-model="workDialog" :title="editingWork ? '编辑工作经历' : '添加工作经历'" :width="isMobile ? '95%' : '500px'">
       <el-form :model="workForm" label-width="80px">
         <el-form-item label="公司"><el-input v-model="workForm.company" /></el-form-item>
         <el-form-item label="职位"><el-input v-model="workForm.position" /></el-form-item>
@@ -293,7 +293,7 @@
     </el-dialog>
 
     <!-- Project Dialog -->
-    <el-dialog v-model="projDialog" :title="editingProj ? '编辑项目' : '添加项目'" width="500px">
+    <el-dialog v-model="projDialog" :title="editingProj ? '编辑项目' : '添加项目'" :width="isMobile ? '95%' : '500px'">
       <el-form :model="projForm" label-width="80px">
         <el-form-item label="项目名称"><el-input v-model="projForm.name" /></el-form-item>
         <el-form-item label="角色"><el-input v-model="projForm.role" /></el-form-item>
@@ -316,7 +316,7 @@
     </el-dialog>
 
     <!-- Skill Dialog -->
-    <el-dialog v-model="skillDialog" :title="editingSkill ? '编辑技能' : '添加技能'" width="400px">
+    <el-dialog v-model="skillDialog" :title="editingSkill ? '编辑技能' : '添加技能'" :width="isMobile ? '95%' : '400px'">
       <el-form :model="skillForm" label-width="80px">
         <el-form-item label="技能名称"><el-input v-model="skillForm.name" /></el-form-item>
         <el-form-item label="熟练度">
@@ -333,7 +333,7 @@
     </el-dialog>
 
     <!-- PDF Export Dialog -->
-    <el-dialog v-model="showPdfDialog" title="导出PDF简历" width="450px">
+    <el-dialog v-model="showPdfDialog" title="导出PDF简历" :width="isMobile ? '95%' : '450px'">
       <p style="margin-bottom: 12px; color: #666">选择要包含的模块（个人信息模块自动包含）：</p>
       <el-checkbox-group v-model="pdfModules">
         <el-checkbox
@@ -372,6 +372,7 @@ import { resumeApi, educationApi, workApi, projectApi, skillApi, tagApi } from '
 import { ElMessage } from 'element-plus'
 import PolishDialog from '@/components/PolishDialog.vue'
 
+const isMobile = computed(() => window.innerWidth <= 768)
 const resumeId = ref(null)
 const isCreate = ref(true)
 const saving = ref(false)
@@ -459,7 +460,6 @@ function openPolish(text, moduleName) {
 }
 
 function handlePolishAccept(polishedText) {
-  // Apply polished text to the correct field
   const target = polishTarget.moduleName
   if (target === 'summary') {
     form.value.summary = polishedText
@@ -518,7 +518,6 @@ async function saveResume() {
       ElMessage.success('基本信息已保存')
     }
 
-    // Upload file if selected
     if (uploadFile.value && resumeId.value) {
       const fd = new FormData()
       fd.append('file', uploadFile.value)
@@ -527,7 +526,6 @@ async function saveResume() {
       ElMessage.success('文件上传成功，AI正在自动归类内容...')
       uploadFile.value = null
       fileList.value = []
-      // Reload to get classified data
       await loadResume()
     }
   } catch { /* */ } finally {
@@ -679,6 +677,17 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-form {
+  max-width: 700px;
 }
 
 .textarea-with-polish {
@@ -697,5 +706,27 @@ onMounted(async () => {
   margin-top: 4px;
   font-size: 12px;
   color: #909399;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .edit-form :deep(.el-form-item__label) {
+    float: none;
+    display: block;
+    text-align: left;
+    padding-bottom: 4px;
+  }
+
+  .edit-form :deep(.el-form-item) {
+    display: block;
+  }
+
+  .edit-form :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+  }
 }
 </style>
