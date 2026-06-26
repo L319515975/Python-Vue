@@ -1,4 +1,18 @@
-"""Visitor link utilities - HMAC signature generation and verification (with HR mode)."""
+﻿"""访客链接工具模块 - 处理HMAC签名生成和验证。
+
+本模块的核心功能是确保访客链接的安全性。
+
+HMAC签名机制（通俗解释）：
+1. 用户生成访客链接时，系统用密钥对链接信息进行加密签名
+2. 访客打开链接时，系统验证签名是否正确
+3. 如果签名被篡改（比如修改了过期时间），验证就会失败
+4. 这样可以防止他人伪造或篡改访客链接
+
+安全性保证：
+- 密钥只存在服务器端，外部无法伪造签名
+- 签名包含token+过期时间+角色，任何一项被篡改都会导致签名失效
+- 使用SHA256算法，几乎不可能被破解
+"""
 import hashlib
 import hmac
 import logging
@@ -10,17 +24,34 @@ logger = logging.getLogger(__name__)
 
 
 def get_visitor_secret():
-    """Get the secret key for visitor link signing."""
+    """获取访客链接签名用的密钥。
+
+    优先使用settings中配置的VISITOR_LINK_SECRET，
+    如果没有配置，则使用Django的SECRET_KEY。
+    """
     return getattr(settings, 'VISITOR_LINK_SECRET', settings.SECRET_KEY)
 
 
 def generate_visitor_signature(token: str, expires_timestamp: int, role: str = 'visitor') -> str:
-    """
-    Generate HMAC-SHA256 signature for a visitor link.
-    Signs: token + expires_timestamp + role (to prevent role tampering).
+    """生成HMAC-SHA256签名。
+
+    签名过程：
+    1. 将token、过期时间戳、角色用冒号拼接成消息字符串
+    2. 使用密钥和SHA256算法对消息进行加密
+    3. 返回十六进制的签名字符串
+
+    参数：
+        token: 访客访问Token
+        expires_timestamp: 过期时间的Unix时间戳（秒）
+        role: 访客角色（'visitor' 或 'hr'）
+
+    返回：
+        64位十六进制签名字符串
     """
     secret = get_visitor_secret()
+    # 将签名内容编码为字节串（HMAC要求输入为字节）
     message = f'{token}:{expires_timestamp}:{role}'.encode('utf-8')
+    # hmac.new(密钥, 消息, 算法) 生成签名
     signature = hmac.new(
         secret.encode('utf-8'),
         message,
@@ -30,18 +61,31 @@ def generate_visitor_signature(token: str, expires_timestamp: int, role: str = '
 
 
 def verify_visitor_signature(token: str, expires_timestamp: int, sig: str, role: str = 'visitor') -> bool:
-    """
-    Verify the HMAC-SHA256 signature of a visitor link.
-    Returns True if valid, False otherwise.
+    """验证HMAC-SHA256签名是否正确。
+
+    使用hmac.compare_digest进行安全比较，
+    这个函数会用固定时间比较两个字符串，
+    防止"时序攻击"（通过比较时间差异来猜测签名）。
+
+    返回：
+        True = 签名正确
+        False = 签名错误或被篡改
     """
     expected_sig = generate_visitor_signature(token, expires_timestamp, role)
     return hmac.compare_digest(expected_sig, sig)
 
 
 def is_visitor_link_valid(resume) -> dict:
-    """
-    Check if a resume's visitor link is currently valid.
-    Returns dict with: valid (bool), reason (str if invalid)
+    """检查简历的访客链接是否当前有效。
+
+    检查条件：
+    1. 访客链接是否已启用
+    2. 访客Token是否已生成
+    3. 链接是否已过期
+    4. 简历是否已发布（草稿状态不允许访客访问）
+
+    返回：
+        {'valid': True} 或 {'valid': False, 'reason': '原因'}
     """
     if not resume.visitor_enabled:
         return {'valid': False, 'reason': '游客链接未启用'}
@@ -59,29 +103,41 @@ def is_visitor_link_valid(resume) -> dict:
 
 
 def get_visitor_url(resume, request=None) -> str:
-    """
-    Build the full visitor URL for a resume.
-    If HR mode is enabled, includes role=hr and quota parameters.
-    Returns URL with signature parameters.
+    """构建完整的访客访问URL。
+
+    URL格式示例：
+    普通访客：/visitor/{token}?expires=1234567890&sig=abc123...
+    HR模式：/visitor/{token}?expires=1234567890&sig=abc123...&role=hr&quota=10
+
+    参数：
+        resume: 简历对象
+        request: HTTP请求对象（用于获取域名），可选
+
+    返回：
+        完整的访客URL字符串
     """
     from datetime import datetime
 
     if not resume.visitor_token:
         return ''
 
+    # 计算过期时间戳
     expires_ts = 0
     if resume.visitor_expires:
         expires_ts = int(resume.visitor_expires.timestamp())
 
-    # Determine role for signature
+    # 根据是否启用HR模式决定签名角色
     role = 'hr' if resume.visitor_hr_enabled else 'visitor'
     sig = generate_visitor_signature(resume.visitor_token, expires_ts, role)
 
+    # 构建基础URL
     base_url = ''
     if request:
         base_url = f'{request.scheme}://{request.get_host()}'
 
     url = f'{base_url}/visitor/{resume.visitor_token}'
+
+    # 构建查询参数
     params = []
     if expires_ts:
         params.append(f'expires={expires_ts}')
@@ -96,9 +152,11 @@ def get_visitor_url(resume, request=None) -> str:
 
 
 def check_hr_ai_quota(resume) -> dict:
-    """
-    Check if the HR visitor still has AI quota remaining.
-    Returns dict with: available (bool), remaining (int), total (int)
+    """检查HR访客的AI调用配额是否还有剩余。
+
+    返回：
+        {'available': True, 'remaining': 5, 'total': 10}
+        或 {'available': False, 'reason': '配额已用尽', ...}
     """
     if not resume.visitor_hr_enabled:
         return {'available': False, 'remaining': 0, 'total': 0, 'reason': 'HR模式未启用'}
@@ -114,10 +172,15 @@ def check_hr_ai_quota(resume) -> dict:
 
 
 def filter_visitor_data(resume) -> dict:
-    """
-    Build a filtered resume data dict for visitor view.
-    Only includes public modules and non-sensitive fields.
-    If HR mode is active, includes HR-specific metadata.
+    """构建访客可见的简历数据（过滤掉敏感信息）。
+
+    这个函数的职责是：
+    1. 只返回用户设置为公开的模块数据
+    2. 排除敏感信息（如联系方式、文件路径等）
+    3. 如果启用了HR模式，附带HR相关的元数据（AI配额等）
+
+    返回：
+        包含公开简历数据的字典
     """
     public_modules = resume.get_public_modules()
 
@@ -128,7 +191,7 @@ def filter_visitor_data(resume) -> dict:
         'tags': [],
         'modules': {},
         'visitor_allow_download': resume.visitor_allow_download,
-        # HR mode metadata
+        # HR模式元数据
         'hr_enabled': resume.visitor_hr_enabled,
         'ai_enabled': resume.visitor_ai_enabled if resume.visitor_hr_enabled else False,
         'ai_quota': resume.visitor_ai_quota if resume.visitor_hr_enabled else 0,
@@ -136,13 +199,13 @@ def filter_visitor_data(resume) -> dict:
         'ai_remaining': max(0, resume.visitor_ai_quota - resume.visitor_ai_used) if resume.visitor_hr_enabled else 0,
     }
 
-    # Tags (public)
+    # 标签（公开信息）
     data['tags'] = [
         {'name': t.name, 'type': t.tag_type}
         for t in resume.tags.all()
     ]
 
-    # Education
+    # 教育经历
     if 'education' in public_modules:
         data['modules']['education'] = [
             {
@@ -156,7 +219,7 @@ def filter_visitor_data(resume) -> dict:
             for e in resume.educations.all()
         ]
 
-    # Work experience (hide sensitive fields)
+    # 工作经历
     if 'work_experience' in public_modules:
         data['modules']['work_experience'] = [
             {
@@ -169,7 +232,7 @@ def filter_visitor_data(resume) -> dict:
             for w in resume.work_experiences.all()
         ]
 
-    # Projects
+    # 项目经历
     if 'project' in public_modules:
         data['modules']['project'] = [
             {
@@ -183,18 +246,14 @@ def filter_visitor_data(resume) -> dict:
             for p in resume.projects.all()
         ]
 
-    # Skills
+    # 技能清单
     if 'skill' in public_modules:
         data['modules']['skill'] = [
-            {
-                'name': s.name,
-                'level': s.level,
-                'category': s.category,
-            }
+            {'name': s.name, 'level': s.level, 'category': s.category}
             for s in resume.skills.all()
         ]
 
-    # Module data (certificate, award, language)
+    # 纯文本模块（证书、获奖、语言能力）
     for mod_key in ['certificate', 'award', 'language']:
         if mod_key in public_modules and resume.module_data:
             content = resume.module_data.get(mod_key, '')

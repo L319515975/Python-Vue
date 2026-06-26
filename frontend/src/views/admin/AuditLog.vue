@@ -1,7 +1,16 @@
-﻿<template>
+﻿<!--
+  操作审计页面 AuditLog.vue —— 管理员查看操作审计和 HR AI 使用日志。
+
+  功能：
+  1. 操作审计日志：记录管理员的所有敏感操作（创建/修改/删除用户、简历、标签等）
+  2. HR AI 使用日志：记录 HR 访客使用 AI 功能的记录
+
+  使用 el-tabs 实现两个标签页切换。
+-->
+<template>
   <div>
     <el-tabs v-model="activeTab">
-      <!-- Admin Audit Logs -->
+      <!-- ========== 操作审计标签页 ========== -->
       <el-tab-pane label="操作审计" name="audit">
         <el-card>
           <template #header>
@@ -11,17 +20,18 @@
             </div>
           </template>
 
+          <!-- 筛选表单 -->
           <el-form :inline="true" size="small" class="filter-form">
             <el-form-item label="操作类型">
-              <el-select v-model="filters.action" clearable placeholder="全部" style="width: 150px">
+              <el-select v-model="filters.action" clearable placeholder="全部" class="filter-input">
                 <el-option v-for="opt in actionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
               </el-select>
             </el-form-item>
             <el-form-item label="目标用户">
-              <el-input v-model="filters.target_user" clearable placeholder="用户名" style="width: 150px" />
+              <el-input v-model="filters.target_user" clearable placeholder="用户名" class="filter-input" />
             </el-form-item>
             <el-form-item label="操作管理员">
-              <el-input v-model="filters.admin_user" clearable placeholder="管理员" style="width: 150px" />
+              <el-input v-model="filters.admin_user" clearable placeholder="管理员" class="filter-input" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" icon="Search" @click="loadLogs">查询</el-button>
@@ -29,7 +39,8 @@
             </el-form-item>
           </el-form>
 
-          <el-table :data="logs" v-loading="loading" stripe border style="width: 100%">
+          <!-- 审计日志表格 -->
+          <el-table :data="logs" v-loading="loading" stripe border class="full-width">
             <el-table-column prop="id" label="ID" width="60" />
             <el-table-column prop="admin_user" label="操作管理员" width="120" />
             <el-table-column prop="action_display" label="操作类型" width="120">
@@ -59,7 +70,7 @@
         </el-card>
       </el-tab-pane>
 
-      <!-- HR AI Usage Logs -->
+      <!-- ========== HR AI 使用日志标签页 ========== -->
       <el-tab-pane label="HR AI使用日志" name="hr-ai">
         <el-card>
           <template #header>
@@ -71,13 +82,13 @@
 
           <el-form :inline="true" size="small" class="filter-form">
             <el-form-item label="调用类型">
-              <el-select v-model="hrFilters.call_type" clearable placeholder="全部" style="width: 120px">
+              <el-select v-model="hrFilters.call_type" clearable placeholder="全部" class="filter-input-sm">
                 <el-option label="AI咨询" value="chat" />
                 <el-option label="文本润色" value="polish" />
               </el-select>
             </el-form-item>
             <el-form-item label="用户名">
-              <el-input v-model="hrFilters.username" clearable placeholder="简历所属用户" style="width: 150px" />
+              <el-input v-model="hrFilters.username" clearable placeholder="简历所属用户" class="filter-input" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" icon="Search" @click="loadHrLogs">查询</el-button>
@@ -85,7 +96,7 @@
             </el-form-item>
           </el-form>
 
-          <el-table :data="hrLogs" v-loading="hrLoading" stripe border style="width: 100%">
+          <el-table :data="hrLogs" v-loading="hrLoading" stripe border class="full-width">
             <el-table-column prop="id" label="ID" width="60" />
             <el-table-column prop="username" label="简历用户" width="100" />
             <el-table-column prop="visitor_token" label="访客Token" width="140" />
@@ -120,24 +131,33 @@
 </template>
 
 <script setup>
+/**
+ * 操作审计页面逻辑。
+ *
+ * 包含两个日志模块：
+ * 1. 管理员操作审计：记录所有敏感操作
+ * 2. HR AI 使用日志：记录访客 HR 使用 AI 的记录
+ */
 import { ref, reactive, onMounted } from 'vue'
 import { auditLogApi, hrAiUsageApi } from '@/api'
 
 const activeTab = ref('audit')
 
-// Audit log state
+// ========== 操作审计日志状态 ==========
 const logs = ref([])
 const loading = ref(false)
 const page = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 
+// 筛选条件（使用 reactive 创建响应式对象）
 const filters = reactive({
   action: '',
   target_user: '',
   admin_user: '',
 })
 
+// 操作类型选项
 const actionOptions = [
   { value: 'user_create', label: '创建用户' },
   { value: 'user_update', label: '修改用户' },
@@ -151,7 +171,7 @@ const actionOptions = [
   { value: 'other', label: '其他' },
 ]
 
-// HR AI log state
+// ========== HR AI 使用日志状态 ==========
 const hrLogs = ref([])
 const hrLoading = ref(false)
 const hrPage = ref(1)
@@ -163,6 +183,7 @@ const hrFilters = reactive({
   username: '',
 })
 
+/** 根据操作类型返回标签颜色。 */
 function actionTagType(action) {
   if (action.includes('delete')) return 'danger'
   if (action.includes('create')) return 'success'
@@ -171,11 +192,13 @@ function actionTagType(action) {
   return ''
 }
 
+/** 格式化 ISO 时间为本地化字符串。 */
 function formatTime(isoStr) {
   if (!isoStr) return ''
   return new Date(isoStr).toLocaleString('zh-CN')
 }
 
+/** 加载操作审计日志。 */
 async function loadLogs() {
   loading.value = true
   try {
@@ -193,6 +216,7 @@ async function loadLogs() {
   }
 }
 
+/** 加载 HR AI 使用日志。 */
 async function loadHrLogs() {
   hrLoading.value = true
   try {
@@ -209,6 +233,7 @@ async function loadHrLogs() {
   }
 }
 
+// 分页和筛选处理函数
 function handlePageChange(val) { page.value = val; loadLogs() }
 function handleSizeChange(val) { pageSize.value = val; page.value = 1; loadLogs() }
 function handleHrPageChange(val) { hrPage.value = val; loadHrLogs() }
@@ -229,6 +254,7 @@ function resetHrFilters() {
   loadHrLogs()
 }
 
+// 组件挂载时加载两种日志
 onMounted(() => {
   loadLogs()
   loadHrLogs()
@@ -250,11 +276,11 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .filter-form :deep(.el-form-item) {
-    margin-bottom: 8px;
-  }
-  .filter-form :deep(.el-form-item__content) {
-    flex-wrap: wrap;
-  }
+  .filter-form :deep(.el-form-item) { margin-bottom: 8px; }
+  .filter-form :deep(.el-form-item__content) { flex-wrap: wrap; }
 }
+
+.filter-input { width: 150px; }
+.filter-input-sm { width: 120px; }
+.full-width { width: 100%; }
 </style>

@@ -1,60 +1,95 @@
-﻿import request from '@/utils/request'
+﻿/**
+ * API 接口定义文件 —— 集中管理所有与后端通信的函数。
+ *
+ * 作用：将所有 API 请求封装为函数，方便在组件中调用。
+ *
+ * 知识点：
+ * - 所有函数都返回 Promise（因为 HTTP 请求是异步的）
+ * - 使用 async/await 或 .then() 来处理异步结果
+ * - request 是封装好的 Axios 实例（见 utils/request.js）
+ *
+ * 为什么集中管理 API？
+ * 1. 避免在组件中硬编码 URL（如果后端路径变了，只需改一处）
+ * 2. 提供清晰的接口文档（看这个文件就知道有哪些接口可用）
+ * 3. 方便统一处理请求/响应格式
+ *
+ * API 分组：
+ * - userApi：用户相关（登录、注册、用户管理）
+ * - tagApi：标签管理
+ * - resumeApi：简历管理（CRUD、文件上传、PDF导出、访客链接）
+ * - visitorApi：访客公开接口（无需登录）
+ * - educationApi / workApi / projectApi / skillApi：简历子模块
+ * - aiApi：AI 助手（对话、润色、日志）
+ * - auditLogApi：操作审计日志
+ */
+import request from '@/utils/request'
 
-// User API
+// ========== 用户相关 API ==========
 export const userApi = {
+  // 登录：发送用户名密码，获取 JWT 令牌
   login: (data) => request.post('/users/login/', data),
+  // 刷新令牌：用 refresh_token 获取新的 access_token
   refreshToken: (data) => request.post('/users/token/refresh/', data),
+  // 获取当前登录用户的信息
   getMe: () => request.get('/users/me/'),
+  // 修改个人信息
   updateMe: (data) => request.patch('/users/me/', data),
+  // 修改密码
   changePassword: (data) => request.post('/users/change-password/', data),
-  // Admin only
-  list: (params) => request.get('/users/', { params }),
-  create: (data) => request.post('/users/', data),
-  update: (id, data) => request.patch(`/users/${id}/`, data),
-  delete: (id) => request.delete(`/users/${id}/`),
+  // 以下为管理员专用接口
+  list: (params) => request.get('/users/', { params }),          // 用户列表
+  create: (data) => request.post('/users/', data),               // 创建用户
+  update: (id, data) => request.patch(`/users/${id}/`, data),    // 修改用户
+  delete: (id) => request.delete(`/users/${id}/`),               // 删除用户
 }
 
-// Tag API
+// ========== 标签相关 API ==========
 export const tagApi = {
-  list: (params) => request.get('/resumes/tags/', { params }),
-  create: (data) => request.post('/resumes/tags/', data),
-  update: (id, data) => request.patch(`/resumes/tags/${id}/`, data),
-  delete: (id) => request.delete(`/resumes/tags/${id}/`),
+  list: (params) => request.get('/resumes/tags/', { params }),           // 标签列表
+  create: (data) => request.post('/resumes/tags/', data),                // 创建标签
+  update: (id, data) => request.patch(`/resumes/tags/${id}/`, data),     // 修改标签
+  delete: (id) => request.delete(`/resumes/tags/${id}/`),                // 删除标签
 }
 
-// Resume API
+// ========== 简历相关 API ==========
 export const resumeApi = {
-  list: (params) => request.get('/resumes/', { params }),
-  detail: (id) => request.get(`/resumes/${id}/`),
-  create: (data) => request.post('/resumes/', data),
-  update: (id, data) => request.patch(`/resumes/${id}/`, data),
-  delete: (id) => request.delete(`/resumes/${id}/`),
+  list: (params) => request.get('/resumes/', { params }),                         // 简历列表
+  detail: (id) => request.get(`/resumes/${id}/`),                                // 简历详情
+  create: (data) => request.post('/resumes/', data),                             // 创建简历
+  update: (id, data) => request.patch(`/resumes/${id}/`, data),                  // 修改简历
+  delete: (id) => request.delete(`/resumes/${id}/`),                             // 删除简历
+  // 上传简历文件（使用 FormData 格式，支持文件上传）
   uploadFile: (id, formData) => request.post(`/resumes/${id}/upload_file/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': 'multipart/form-data' },  // 文件上传需要 multipart 格式
   }),
+  // 更新简历的启用模块
   updateModules: (id, data) => request.post(`/resumes/${id}/update-modules/`, data),
+  // 设置简历标签
   setTags: (id, tagIds) => request.post(`/resumes/${id}/set-tags/`, { tag_ids: tagIds }),
+  // 导出简历为 PDF（responseType: 'blob' 表示返回二进制文件）
   exportPdf: (id, modules) => request.post(`/resumes/${id}/export-pdf/`, { modules }, {
     responseType: 'blob',
   }),
-  // Visitor link management
-  generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),
-  disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),
-  visitorLinkInfo: (id) => request.get(`/resumes/${id}/visitor-link-info/`),
+  // 访客链接管理
+  generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),  // 生成访客链接
+  disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),                 // 禁用访客链接
+  visitorLinkInfo: (id) => request.get(`/resumes/${id}/visitor-link-info/`),                        // 查看访客链接信息
 }
 
-// Visitor API (no auth required)
+// ========== 访客公开 API（无需登录） ==========
 export const visitorApi = {
+  // 通过访客 token 查看简历（params 包含签名参数 sig、expires、role）
   getResume: (token, params) => request.get(`/resumes/visitor/${token}/`, { params }),
+  // 通过访客 token 下载简历 PDF
   downloadPdf: (token, params) => request.get(`/resumes/visitor/${token}/download/`, {
     params,
-    responseType: 'blob',
+    responseType: 'blob',  // 返回二进制文件
   }),
-  // HR visitor AI chat (role=hr in params)
+  // HR 访客 AI 对话（params 包含签名参数，data 包含查询内容）
   aiChat: (token, params, data) => request.post(`/resumes/visitor/${token}/ai-chat/`, data, { params }),
 }
 
-// Education API
+// ========== 教育经历 API ==========
 export const educationApi = {
   list: (params) => request.get('/resumes/educations/', { params }),
   create: (data) => request.post('/resumes/educations/', data),
@@ -62,7 +97,7 @@ export const educationApi = {
   delete: (id) => request.delete(`/resumes/educations/${id}/`),
 }
 
-// Work Experience API
+// ========== 工作经历 API ==========
 export const workApi = {
   list: (params) => request.get('/resumes/work-experiences/', { params }),
   create: (data) => request.post('/resumes/work-experiences/', data),
@@ -70,7 +105,7 @@ export const workApi = {
   delete: (id) => request.delete(`/resumes/work-experiences/${id}/`),
 }
 
-// Project API
+// ========== 项目经历 API ==========
 export const projectApi = {
   list: (params) => request.get('/resumes/projects/', { params }),
   create: (data) => request.post('/resumes/projects/', data),
@@ -78,7 +113,7 @@ export const projectApi = {
   delete: (id) => request.delete(`/resumes/projects/${id}/`),
 }
 
-// Skill API
+// ========== 技能 API ==========
 export const skillApi = {
   list: (params) => request.get('/resumes/skills/', { params }),
   create: (data) => request.post('/resumes/skills/', data),
@@ -86,23 +121,28 @@ export const skillApi = {
   delete: (id) => request.delete(`/resumes/skills/${id}/`),
 }
 
-// AI Assistant API
+// ========== AI 助手 API ==========
 export const aiApi = {
+  // AI 对话：发送问题，获取 AI 回答
   chat: (query) => request.post('/ai/chat/', { query }),
+  // 文本润色：发送原文，获取润色后的文本
   polish: (text, moduleName) => request.post('/ai/polish/', { text, module_name: moduleName }),
+  // 查看自己的 AI 对话历史
   history: (params) => request.get('/ai/history/', { params }),
+  // 管理员查看所有 AI 对话日志
   logs: (params) => request.get('/ai/logs/', { params }),
+  // 管理员查看润色日志
   polishLogs: (params) => request.get('/ai/polish-logs/', { params }),
+  // 管理员查看分类日志
   classificationLogs: (params) => request.get('/ai/classification-logs/', { params }),
 }
 
-// Audit Log API (admin only)
+// ========== 操作审计日志 API（管理员专用） ==========
 export const auditLogApi = {
   list: (params) => request.get('/users/audit-logs/', { params }),
 }
 
-// HR AI Usage Log API (admin only)
+// ========== HR AI 使用日志 API（管理员专用） ==========
 export const hrAiUsageApi = {
   list: (params) => request.get('/users/hr-ai-logs/', { params }),
 }
-

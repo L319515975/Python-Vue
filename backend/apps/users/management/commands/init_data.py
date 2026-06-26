@@ -1,4 +1,4 @@
-﻿"""Management command to initialize sample data."""
+"""Management command to initialize sample data."""
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from apps.resumes.models import Resume, Education, WorkExperience, Project, Skill, Tag
