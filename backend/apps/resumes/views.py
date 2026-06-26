@@ -1,4 +1,4 @@
-﻿"""
+"""
 简历模块的视图层 —— 处理所有与简历相关的 HTTP 请求。
 
 本文件包含：
@@ -400,7 +400,12 @@ class ResumeViewSet(viewsets.ModelViewSet):
 
         原理：admin 看所有简历，普通用户只看自己的。
         select_related 和 prefetch_related 用于优化数据库查询性能。
+
+        swagger_fake_view：drf_yasg 生成 Swagger 文档时会创建"假视图"，
+        此时 request.user 是 AnonymousUser（没有 role 属性），需要提前返回空集。
         """
+        if getattr(self, 'swagger_fake_view', False):
+            return Resume.objects.none()
         user = self.request.user
         if user.role == 'admin':
             return Resume.objects.select_related('user').prefetch_related('tags').all()
@@ -635,6 +640,9 @@ class EducationViewSet(viewsets.ModelViewSet):
     serializer_class = EducationSerializer
 
     def get_queryset(self):
+        """根据角色过滤教育经历。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return Education.objects.none()
         user = self.request.user
         base = Education.objects.select_related('resume', 'resume__user')
         if user.role == 'admin':
@@ -650,6 +658,9 @@ class WorkExperienceViewSet(viewsets.ModelViewSet):
     serializer_class = WorkExperienceSerializer
 
     def get_queryset(self):
+        """根据角色过滤工作经历。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return WorkExperience.objects.none()
         user = self.request.user
         base = WorkExperience.objects.select_related('resume', 'resume__user')
         if user.role == 'admin':
@@ -665,6 +676,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
+        """根据角色过滤项目经历。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return Project.objects.none()
         user = self.request.user
         base = Project.objects.select_related('resume', 'resume__user')
         if user.role == 'admin':
@@ -680,6 +694,9 @@ class SkillViewSet(viewsets.ModelViewSet):
     serializer_class = SkillSerializer
 
     def get_queryset(self):
+        """根据角色过滤技能。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return Skill.objects.none()
         user = self.request.user
         base = Skill.objects.select_related('resume', 'resume__user')
         if user.role == 'admin':

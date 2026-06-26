@@ -1,4 +1,4 @@
-﻿"""
+"""
 项目的 URL 路由配置 —— 所有 HTTP 请求的入口。
 
 URL 路由就像一个"分发中心"，根据请求的 URL 地址，
@@ -25,6 +25,26 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view   # Swagger 文档视图
 from drf_yasg import openapi                 # OpenAPI 规范工具
 
+
+def api_index(request):
+    """API 根路径视图 —— 返回所有可用的 API 端点列表。
+
+    当用户访问 http://localhost:8000/api/ 时，不再返回 404，
+    而是返回一个 JSON 列表，告知有哪些 API 可用。
+    """
+    from django.http import JsonResponse
+    return JsonResponse({
+        'message': 'Smart Resume Hub API',
+        'version': 'v1',
+        'endpoints': {
+            'users': '/api/users/',
+            'resumes': '/api/resumes/',
+            'ai': '/api/ai/',
+            'swagger': '/swagger/',
+            'redoc': '/redoc/',
+        },
+    })
+
 # API 文档配置 —— 定义文档的基本信息
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,6 +67,9 @@ urlpatterns = [
 
     # Django 管理后台（超级管理员使用）
     path('admin/', admin.site.urls),
+
+    # API 根路径：返回所有可用端点的列表
+    path('api/', api_index),
 
     # 用户相关接口：登录、注册、个人信息、用户管理等
     path('api/users/', include('apps.users.urls')),

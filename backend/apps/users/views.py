@@ -1,4 +1,4 @@
-﻿"""用户视图模块 - 处理用户相关的API请求。
+"""用户视图模块 - 处理用户相关的API请求。
 
 本模块包含：
 1. 用户登录（JWT Token获取）
@@ -104,7 +104,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
         管理员可以看到所有用户，普通用户只能看到自己。
         这是数据层面的权限隔离，即使API返回200，普通用户也看不到别人的数据。
+
+        注意：drf_yasg 生成 Swagger 文档时会创建一个"假视图"，该视图没有真实用户。
+        swagger_fake_view 属性就是用来检测这种假视图的，
+        如果是假视图则返回空查询集，避免 AnonymousUser 没有 role 属性导致报错。
         """
+        # Swagger 文档生成时的假视图检测 —— 返回空查询集即可
+        if getattr(self, 'swagger_fake_view', False):
+            return User.objects.none()
         user = self.request.user
         if user.role == 'admin':
             return User.objects.all()        # 管理员：返回所有用户

@@ -1,4 +1,4 @@
-﻿"""AI助手视图模块 - 处理AI功能的API请求。
+"""AI助手视图模块 - 处理AI功能的API请求。
 
 本模块提供三个AI功能的API：
 1. AI对话（chat）：用户向AI助手提问，AI根据简历内容回答
@@ -34,6 +34,9 @@ class QueryLogViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QueryLogSerializer
 
     def get_queryset(self):
+        """根据角色过滤查询日志。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return QueryLog.objects.none()
         user = self.request.user
         if user.role == 'admin':
             return QueryLog.objects.select_related('user').all()
@@ -48,6 +51,9 @@ class PolishLogViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PolishLogSerializer
 
     def get_queryset(self):
+        """根据角色过滤润色日志。swagger_fake_view 时返回空集。"""
+        if getattr(self, 'swagger_fake_view', False):
+            return PolishLog.objects.none()
         user = self.request.user
         if user.role == 'admin':
             return PolishLog.objects.select_related('user').all()
