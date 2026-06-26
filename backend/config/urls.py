@@ -17,6 +17,7 @@ URL 结构：
 - drf_yasg：自动生成 API 文档的工具，根据代码中的序列化器和视图自动生成文档
 """
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -40,6 +41,10 @@ schema_view = get_schema_view(
 
 # URL 路由列表 —— 定义 URL 到视图的映射关系
 urlpatterns = [
+    # 根路径：重定向到 API 文档页面
+    # 访问 http://localhost:8000/ 会自动跳转到 http://localhost:8000/swagger/
+    path('', lambda request: redirect('/swagger/', permanent=False)),
+
     # Django 管理后台（超级管理员使用）
     path('admin/', admin.site.urls),
 
