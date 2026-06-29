@@ -1,0 +1,6 @@
+.search-bar .input { flex: 1; min-width: 420rpx; }
+.search-btn { padding: 0 24rpx; font-size: 24rpx; }
+.log-item { background: #fff; border-radius: 20rpx; padding: 24rpx; box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04); }
+.log-action { font-size: 28rpx; font-weight: 700; color: #175cd3; margin-bottom: 8rpx; }
+.log-detail { font-size: 24rpx; color: #475467; line-height: 1.6; margin-bottom: 8rpx; }
+.log-meta { font-size: 22rpx; color: #98a2b3; }

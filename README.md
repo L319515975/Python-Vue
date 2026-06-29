@@ -93,7 +93,19 @@ npm run dev
 
 前端默认运行在 `http://localhost:5173`，API 代理到 `http://localhost:8000`。
 
-### 3. AI 配置（可选）
+### 3. 微信小程序同步
+
+```bash
+# 手动同步一次 Vue3 路由/API 快照到小程序
+node sync-vue-to-miniprogram.cjs
+
+# 监听 frontend/src 改动，自动同步小程序清单和快照
+node sync-vue-to-miniprogram.cjs --watch
+```
+
+同步脚本会维护 `miniprogram/app.json` 页面清单，并生成 `miniprogram/generated/vue-sync-manifest.json`，用于核对 Vue3 路由/API 改动后小程序是否需要补功能。
+
+### 4. AI 配置（可选）
 
 在 `backend/.env` 文件中配置 OpenAI API：
 

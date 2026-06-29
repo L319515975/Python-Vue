@@ -1,95 +1,111 @@
 """
-项目的 URL 路由配置 —— 所有 HTTP 请求的入口。
+项目级 URL 配置。
 
-URL 路由就像一个"分发中心"，根据请求的 URL 地址，
-把请求转发到对应的处理函数（视图）。
-
-URL 结构：
-- /admin/               → Django 自带的管理后台
-- /api/users/           → 用户相关接口（登录、注册、用户管理）
-- /api/resumes/         → 简历相关接口（简历 CRUD、标签、访客等）
-- /api/ai/              → AI 助手相关接口（对话、润色、分类）
-- /swagger/             → API 接口文档（Swagger UI）
-- /redoc/               → API 接口文档（ReDoc UI）
-
-知识点：
-- include()：将 URL 分发到各应用的 urls.py 中（分而治之）
-- drf_yasg：自动生成 API 文档的工具，根据代码中的序列化器和视图自动生成文档
+这里负责把“访问哪个地址”映射到“执行哪个视图”。
+你可以把它理解成总路由表：
+- `/` 显示一个简单首页
+- `/admin/` 进入 Django 后台
+- `/api/` 返回 API 入口说明
+- `/api/users/` 用户相关接口
+- `/api/resumes/` 简历相关接口
+- `/api/ai/` AI 相关接口
+- `/swagger/` 和 `/redoc/` 提供接口文档
 """
+
 from django.contrib import admin
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
-from django.urls import path, include
+from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view   # Swagger 文档视图
-from drf_yasg import openapi                 # OpenAPI 规范工具
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+
+
+def home_page(request):
+    """
+    根路径首页。
+
+    这样访问 `http://localhost:8000/` 时不会看到 404，
+    而是看到一个简单的入口页，方便新手确认服务已启动。
+    """
+    html = """
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>智能简历系统</title>
+        <style>
+          body { font-family: Arial, "Microsoft YaHei", sans-serif; padding: 40px; background: #f7f8fa; }
+          .card { max-width: 720px; background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+          h1 { margin-top: 0; }
+          a { color: #1677ff; text-decoration: none; }
+          ul { line-height: 1.9; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>智能简历管理系统</h1>
+          <p>后端服务已启动。你可以从下面入口继续使用：</p>
+          <ul>
+            <li><a href="/admin/">Django 管理后台</a></li>
+            <li><a href="/api/">API 入口</a></li>
+            <li><a href="/swagger/">Swagger 文档</a></li>
+            <li><a href="/redoc/">ReDoc 文档</a></li>
+          </ul>
+        </div>
+      </body>
+    </html>
+    """
+    return HttpResponse(html)
 
 
 def api_index(request):
-    """API 根路径视图 —— 返回所有可用的 API 端点列表。
-
-    当用户访问 http://localhost:8000/api/ 时，不再返回 404，
-    而是返回一个 JSON 列表，告知有哪些 API 可用。
     """
-    from django.http import JsonResponse
-    return JsonResponse({
-        'message': 'Smart Resume Hub API',
-        'version': 'v1',
-        'endpoints': {
-            'users': '/api/users/',
-            'resumes': '/api/resumes/',
-            'ai': '/api/ai/',
-            'swagger': '/swagger/',
-            'redoc': '/redoc/',
-        },
-    })
+    API 入口说明。
 
-# API 文档配置 —— 定义文档的基本信息
+    访问 `/api/` 时返回 JSON，避免浏览器直接看到 404。
+    """
+    return JsonResponse(
+        {
+            "message": "Smart Resume Hub API",
+            "version": "v1",
+            "endpoints": {
+                "users": "/api/users/",
+                "resumes": "/api/resumes/",
+                "ai": "/api/ai/",
+                "swagger": "/swagger/",
+                "redoc": "/redoc/",
+            },
+        }
+    )
+
+
 schema_view = get_schema_view(
     openapi.Info(
-        title="Smart Resume Hub API",           # API 文档标题
-        default_version='v1',                    # API 版本号
-        description="智能简历管理系统 API 接口文档",  # 文档描述
+        title="Smart Resume Hub API",
+        default_version="v1",
+        description="智能简历管理系统 API 文档",
         terms_of_service="https://www.example.com/terms/",
-        contact=openapi.Contact(email="1943201663@qq.com"),  # 联系方式
-        license=openapi.License(name="MIT License"),          # 许可证
+        contact=openapi.Contact(email="1943201663@qq.com"),
+        license=openapi.License(name="MIT License"),
     ),
-    public=True,                             # 文档对外公开
-    permission_classes=(permissions.AllowAny,),  # 任何人都能查看文档
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
-# URL 路由列表 —— 定义 URL 到视图的映射关系
+
 urlpatterns = [
-    # 根路径：重定向到 API 文档页面
-    # 访问 http://localhost:8000/ 会自动跳转到 http://localhost:8000/swagger/
-    path('', lambda request: redirect('/swagger/', permanent=False)),
-
-    # Django 管理后台（超级管理员使用）
-    path('admin/', admin.site.urls),
-
-    # API 根路径：返回所有可用端点的列表
-    path('api/', api_index),
-
-    # 用户相关接口：登录、注册、个人信息、用户管理等
-    path('api/users/', include('apps.users.urls')),
-
-    # 简历相关接口：简历 CRUD、标签管理、文件上传、访客链接等
-    path('api/resumes/', include('apps.resumes.urls')),
-
-    # AI 助手接口：智能问答、文本润色、日志查看等
-    path('api/ai/', include('apps.ai_assistant.urls')),
-
-    # API 文档（Swagger 格式，支持在线测试接口）
-    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-
-    # API 文档（ReDoc 格式，更适合阅读）
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path("", home_page),
+    path("admin/", admin.site.urls),
+    path("api/", api_index),
+    path("api/users/", include("apps.users.urls")),
+    path("api/resumes/", include("apps.resumes.urls")),
+    path("api/ai/", include("apps.ai_assistant.urls")),
+    path("swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
+    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]
 
-# 开发模式下，为上传的文件提供访问服务
-# MEDIA_URL = '/media/'，MEDIA_ROOT 是文件上传的存储目录
-# 这行代码让 Django 能够响应 /media/xxx 的请求，返回上传的文件
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,97 @@
+<view class="page dashboard-page">
+  <view class="card hero-card">
+    <view class="hero-top">
+      <view>
+        <view class="title">管理后台</view>
+        <view class="sub">当前登录：{{userInfo.username || '-'}}</view>
+      </view>
+      <view class="hero-badge">管理员</view>
+    </view>
+    <view class="hero-tip">汇总系统核心入口、统计数据和最近 AI 使用情况。</view>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-item" bindtap="navTo" data-url="/pages/admin/user-manage/index">
+      <text class="stat-num">{{stats.userCount}}</text>
+      <text class="stat-label">用户数</text>
+    </view>
+    <view class="stat-item" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
+      <text class="stat-num">{{stats.resumeCount}}</text>
+      <text class="stat-label">简历数</text>
+    </view>
+    <view class="stat-item" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
+      <text class="stat-num">{{stats.tagCount}}</text>
+      <text class="stat-label">标签数</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">快捷入口</text>
+      <text class="sub">常用后台页面</text>
+    </view>
+    <view class="action-grid">
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/user-manage/index">
+        <text class="menu-icon">用户</text>
+        <text class="menu-title">用户管理</text>
+        <text class="menu-desc">账号、角色与启用状态</text>
+      </view>
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
+        <text class="menu-icon">简历</text>
+        <text class="menu-title">简历管理</text>
+        <text class="menu-desc">查看、创建、编辑简历</text>
+      </view>
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
+        <text class="menu-icon">标签</text>
+        <text class="menu-title">标签管理</text>
+        <text class="menu-desc">维护分类标签</text>
+      </view>
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/hr-ai-logs/index">
+        <text class="menu-icon">HR</text>
+        <text class="menu-title">HR AI 日志</text>
+        <text class="menu-desc">查看 HR 调用记录</text>
+      </view>
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/ai-logs/index">
+        <text class="menu-icon">AI</text>
+        <text class="menu-title">AI 日志</text>
+        <text class="menu-desc">对话、润色、分类记录</text>
+      </view>
+      <view class="menu-item" bindtap="navTo" data-url="/pages/admin/audit-log/index">
+        <text class="menu-icon">审计</text>
+        <text class="menu-title">审计日志</text>
+        <text class="menu-desc">后台操作留痕</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">最近 AI 记录</text>
+      <text class="sub">{{recentLogs.length}} 条</text>
+    </view>
+    <view class="list">
+      <view class="log-row" wx:for="{{recentLogs}}" wx:key="id">
+        <view class="log-main">
+          <text class="log-query">{{item.query || item.original_text || '-'}}</text>
+          <text class="log-meta">{{item.created_at || ''}}</text>
+        </view>
+        <text class="log-arrow">›</text>
+      </view>
+      <view wx:if="{{recentLogs.length === 0 && !loading}}" class="empty">暂无记录</view>
+    </view>
+  </view>
+
+  <button class="logout-btn" bindtap="handleLogout">退出登录</button>
+
+  <view class="ai-fab" bindtap="toggleFloating">
+    <text class="ai-fab-icon">AI</text>
+  </view>
+  <view class="ai-panel {{floatingVisible ? 'ai-panel-show' : ''}}">
+    <view class="ai-panel-head">
+      <text class="section-title">AI 问答</text>
+      <text class="ai-close" bindtap="closeFloating">×</text>
+    </view>
+    <input class="ai-input" placeholder="输入问题，例如：本月有多少简历？" value="{{floatingQuestion}}" bindinput="onFloatingInput" />
+    <button size="mini" class="primary-btn" loading="{{floatingSubmitting}}" bindtap="askFloatingAi">发送</button>
+  </view>
+</view>

@@ -1,0 +1,43 @@
+<view class="page admin-list-page">
+  <view class="card page-head">
+    <view>
+      <view class="title">简历管理</view>
+      <view class="sub">查看用户简历，支持新增、编辑、删除和进入详情。</view>
+    </view>
+    <button class="add-btn" bindtap="openCreate">新增简历</button>
+  </view>
+
+  <view class="search-bar card compact-card">
+    <input class="input" placeholder="搜索标题 / 用户名" value="{{searchKey}}" bindinput="onSearchInput" />
+    <button class="search-btn" bindtap="loadResumes">搜索</button>
+  </view>
+
+  <view class="list">
+    <view class="list-item" wx:for="{{resumes}}" wx:key="id">
+      <view class="item-info" bindtap="openDetail" data-id="{{item.id}}">
+        <text class="item-name">{{item.title || '未命名简历'}}</text>
+        <text class="item-desc">{{item.username || '-'}} · {{item.status || '-'}}</text>
+      </view>
+      <view class="actions">
+        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="openEdit">编辑</button>
+        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteResume">删除</button>
+      </view>
+    </view>
+    <view wx:if="{{resumes.length === 0 && !loading}}" class="empty">暂无简历</view>
+  </view>
+
+  <view class="modal modal-show" wx:if="{{editFormVisible}}">
+    <view class="modal-content">
+      <text class="modal-title">{{editId ? '编辑简历' : '新增简历'}}</text>
+      <input class="input" placeholder="标题" value="{{form.title}}" data-field="title" bindinput="onFormInput" />
+      <textarea class="textarea" placeholder="简介" value="{{form.summary}}" data-field="summary" bindinput="onFormInput"></textarea>
+      <picker value="{{form.status === 'published' ? 1 : form.status === 'archived' ? 2 : 0}}" range="{{['draft','published','archived']}}" bindchange="onStatusChange">
+        <view class="picker">状态：{{form.status}}</view>
+      </picker>
+      <view class="modal-actions">
+        <button class="cancel-btn" bindtap="closeForm">取消</button>
+        <button class="save-btn" bindtap="saveResume">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

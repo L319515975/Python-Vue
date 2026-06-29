@@ -1,0 +1,49 @@
+<view class="page admin-list-page">
+  <view class="card page-head">
+    <view>
+      <view class="title">用户管理</view>
+      <view class="sub">管理登录账号、角色和启用状态。</view>
+    </view>
+    <button class="add-btn" bindtap="openCreate">新增用户</button>
+  </view>
+
+  <view class="search-bar card compact-card">
+    <input class="input" placeholder="搜索用户名 / 邮箱 / 手机号" value="{{searchKey}}" bindinput="onSearchInput" />
+    <button class="search-btn" bindtap="loadUsers">搜索</button>
+  </view>
+
+  <view class="list">
+    <view class="list-item" wx:for="{{users}}" wx:key="id">
+      <view class="item-info">
+        <text class="item-name">{{item.username}}</text>
+        <text class="item-desc">{{item.email || '-'}} · {{item.role_display || item.role}} · {{item.is_active ? '启用' : '停用'}}</text>
+      </view>
+      <view class="actions">
+        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="openEdit">编辑</button>
+        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteUser">删除</button>
+      </view>
+    </view>
+    <view wx:if="{{users.length === 0 && !loading}}" class="empty">暂无用户</view>
+  </view>
+
+  <view class="modal modal-show" wx:if="{{formVisible}}">
+    <view class="modal-content">
+      <text class="modal-title">{{editId ? '编辑用户' : '新增用户'}}</text>
+      <input class="input" placeholder="用户名" value="{{form.username}}" data-field="username" bindinput="onFormInput" />
+      <input class="input" placeholder="邮箱" value="{{form.email}}" data-field="email" bindinput="onFormInput" />
+      <input class="input" placeholder="手机号" value="{{form.phone}}" data-field="phone" bindinput="onFormInput" />
+      <picker value="{{form.role === 'admin' ? 1 : 0}}" range="{{['user','admin']}}" bindchange="onRoleChange">
+        <view class="picker">角色：{{form.role}}</view>
+      </picker>
+      <input class="input" password placeholder="{{editId ? '不修改请留空' : '登录密码'}}" value="{{form.password}}" data-field="password" bindinput="onFormInput" />
+      <view class="switch-row">
+        <text>账号状态：{{form.is_active ? '启用' : '停用'}}</text>
+        <switch checked="{{form.is_active}}" bindchange="onActiveChange" />
+      </view>
+      <view class="modal-actions">
+        <button class="cancel-btn" bindtap="closeForm">取消</button>
+        <button class="save-btn" bindtap="saveUser">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

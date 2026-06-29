@@ -1,0 +1,122 @@
+﻿<view class="page">
+  <view class="card">
+    <view class="title">编辑简历</view>
+    <view class="field">
+      <text class="label">标题</text>
+      <input class="input" placeholder="简历标题" value="{{form.title}}" bindinput="onTitleInput" />
+    </view>
+    <view class="field">
+      <text class="label">简介 <text class="polish-link" bindtap="openPolisher" data-text="{{form.summary}}" data-module="summary">[润色]</text></text>
+      <textarea class="textarea" placeholder="个人简介" value="{{form.summary}}" bindinput="onSummaryInput"></textarea>
+    </view>
+    <button class="save-btn" loading="{{loading}}" bindtap="saveResume">保存基础信息</button>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">教育经历</text>
+      <button class="add-sub-btn" data-type="education" bindtap="showAddSubItem">+ 添加</button>
+    </view>
+    <view class="sub-item" wx:for="{{educations}}" wx:for-item="row" wx:key="id">
+      <text class="sub-name">{{row.school}} - {{row.major}}</text>
+      <view class="sub-actions">
+        <button size="mini" data-type="education" data-id="{{row.id}}" bindtap="editSubItem">编辑</button>
+        <button size="mini" type="warn" data-type="education" data-id="{{row.id}}" bindtap="deleteSubItem">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">工作经历</text>
+      <button class="add-sub-btn" data-type="work" bindtap="showAddSubItem">+ 添加</button>
+    </view>
+    <view class="sub-item" wx:for="{{workExperiences}}" wx:for-item="row" wx:key="id">
+      <text class="sub-name">{{row.company}} - {{row.position}}</text>
+      <view class="sub-actions">
+        <button size="mini" data-type="work" data-id="{{row.id}}" bindtap="editSubItem">编辑</button>
+        <button size="mini" type="warn" data-type="work" data-id="{{row.id}}" bindtap="deleteSubItem">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">项目经历</text>
+      <button class="add-sub-btn" data-type="project" bindtap="showAddSubItem">+ 添加</button>
+    </view>
+    <view class="sub-item" wx:for="{{projects}}" wx:for-item="row" wx:key="id">
+      <text class="sub-name">{{row.name}}</text>
+      <view class="sub-actions">
+        <button size="mini" data-type="project" data-id="{{row.id}}" bindtap="editSubItem">编辑</button>
+        <button size="mini" type="warn" data-type="project" data-id="{{row.id}}" bindtap="deleteSubItem">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">技能</text>
+      <button class="add-sub-btn" data-type="skill" bindtap="showAddSubItem">+ 添加</button>
+    </view>
+    <view class="sub-item" wx:for="{{skills}}" wx:for-item="row" wx:key="id">
+      <text class="sub-name">{{row.name}} ({{row.level || 0}}%)</text>
+      <view class="sub-actions">
+        <button size="mini" data-type="skill" data-id="{{row.id}}" bindtap="editSubItem">编辑</button>
+        <button size="mini" type="warn" data-type="skill" data-id="{{row.id}}" bindtap="deleteSubItem">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="link-item" bindtap="goDetail">查看简历详情 &gt;&gt;</view>
+  </view>
+
+  <view class="modal {{showSubForm ? 'modal-show' : ''}}">
+    <view class="modal-content" wx:if="{{showSubForm}}">
+      <text class="modal-title">{{subFormData.id ? '编辑' : '新增'}} {{subFormType === 'education' ? '教育经历' : subFormType === 'work' ? '工作经历' : subFormType === 'project' ? '项目经历' : '技能'}}</text>
+      <block wx:if="{{subFormType === 'education'}}">
+        <input class="input" placeholder="学校" value="{{subFormData.school}}" data-field="school" bindinput="subFormInput" />
+        <input class="input" placeholder="学位" value="{{subFormData.degree}}" data-field="degree" bindinput="subFormInput" />
+        <input class="input" placeholder="专业" value="{{subFormData.major}}" data-field="major" bindinput="subFormInput" />
+        <input class="input" placeholder="开始日期" value="{{subFormData.start_date}}" data-field="start_date" bindinput="subFormInput" />
+        <input class="input" placeholder="结束日期" value="{{subFormData.end_date}}" data-field="end_date" bindinput="subFormInput" />
+      </block>
+      <block wx:elif="{{subFormType === 'work'}}">
+        <input class="input" placeholder="公司" value="{{subFormData.company}}" data-field="company" bindinput="subFormInput" />
+        <input class="input" placeholder="职位" value="{{subFormData.position}}" data-field="position" bindinput="subFormInput" />
+        <input class="input" placeholder="开始日期" value="{{subFormData.start_date}}" data-field="start_date" bindinput="subFormInput" />
+        <input class="input" placeholder="结束日期" value="{{subFormData.end_date}}" data-field="end_date" bindinput="subFormInput" />
+      </block>
+      <block wx:elif="{{subFormType === 'project'}}">
+        <input class="input" placeholder="项目名称" value="{{subFormData.name}}" data-field="name" bindinput="subFormInput" />
+        <input class="input" placeholder="角色" value="{{subFormData.role}}" data-field="role" bindinput="subFormInput" />
+        <input class="input" placeholder="技术栈" value="{{subFormData.tech_stack}}" data-field="tech_stack" bindinput="subFormInput" />
+        <input class="input" placeholder="开始日期" value="{{subFormData.start_date}}" data-field="start_date" bindinput="subFormInput" />
+        <input class="input" placeholder="结束日期" value="{{subFormData.end_date}}" data-field="end_date" bindinput="subFormInput" />
+      </block>
+      <block wx:elif="{{subFormType === 'skill'}}">
+        <input class="input" placeholder="技能名称" value="{{subFormData.name}}" data-field="name" bindinput="subFormInput" />
+        <input class="input" placeholder="熟练度 1-100" value="{{subFormData.level}}" data-field="level" bindinput="subFormInput" />
+        <input class="input" placeholder="分类" value="{{subFormData.category}}" data-field="category" bindinput="subFormInput" />
+      </block>
+      <view class="modal-actions">
+        <button size="mini" type="warn" bindtap="hideSubForm">取消</button>
+        <button size="mini" type="primary" bindtap="saveSubItem">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal {{showPolisher ? 'modal-show' : ''}}">
+    <view class="modal-content" wx:if="{{showPolisher}}">
+      <text class="modal-title">AI 润色</text>
+      <textarea class="textarea" value="{{polishText}}" bindinput="onPolishTextInput" placeholder="输入要润色的文本..."></textarea>
+      <view class="modal-actions">
+        <button size="mini" loading="{{polishLoading}}" bindtap="doPolish">润色</button>
+        <button size="mini" type="primary" wx:if="{{polishResult}}" bindtap="applyPolish">应用结果</button>
+        <button size="mini" type="warn" bindtap="closePolisher">取消</button>
+      </view>
+      <view wx:if="{{polishResult}}" class="polish-result">{{polishResult}}</view>
+    </view>
+  </view>
+</view>

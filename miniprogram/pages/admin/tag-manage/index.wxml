@@ -1,0 +1,37 @@
+<view class="page admin-list-page">
+  <view class="card page-head">
+    <view>
+      <view class="title">标签管理</view>
+      <view class="sub">维护技能、项目、证书、奖项等标签。</view>
+    </view>
+    <button class="add-btn" bindtap="showCreate">新增标签</button>
+  </view>
+
+  <view class="list">
+    <view class="list-item" wx:for="{{tags}}" wx:key="id">
+      <view class="item-info">
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-desc">{{item.tag_type || 'custom'}}</text>
+      </view>
+      <view class="actions">
+        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="editTag">编辑</button>
+        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteTag">删除</button>
+      </view>
+    </view>
+    <view wx:if="{{tags.length === 0 && !loading}}" class="empty">暂无标签</view>
+  </view>
+
+  <view class="modal modal-show" wx:if="{{formVisible}}">
+    <view class="modal-content">
+      <text class="modal-title">{{editId ? '编辑标签' : '新增标签'}}</text>
+      <input class="input" placeholder="标签名称" value="{{name}}" bindinput="onNameInput" />
+      <picker value="{{tagType}}" range="{{['skill','project','certificate','award','language','custom']}}" bindchange="onTypeChange">
+        <view class="picker">类型：{{tagType}}</view>
+      </picker>
+      <view class="modal-actions">
+        <button class="cancel-btn" bindtap="hideForm">取消</button>
+        <button class="save-btn" bindtap="saveTag">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

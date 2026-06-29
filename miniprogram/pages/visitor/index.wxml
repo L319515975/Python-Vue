@@ -1,0 +1,28 @@
+﻿<view class="page">
+  <view wx:if="{{!resume}}" class="card">
+    <view class="title">访客模式</view>
+    <view class="sub">请输入分享链接中的 token 查看简历</view>
+    <input class="input" placeholder="访客 token" value="{{token}}" bindinput="onTokenInput" />
+    <button class="primary-btn" bindtap="loadResume">加载简历</button>
+  </view>
+
+  <view wx:if="{{resume}}" class="content">
+    <view class="card">
+      <view class="title">{{resume.title || '简历'}}</view>
+      <view class="sub">{{resume.summary || ''}}</view>
+    </view>
+
+    <view class="card" wx:for="{{sections}}" wx:key="title">
+      <view class="section-title">{{item.title}}</view>
+      <view wx:for="{{item.items}}" wx:for-item="row" wx:key="index" class="section-item">{{row}}</view>
+    </view>
+
+    <view class="card" wx:if="{{aiEnabled}}">
+      <view class="title">AI 咨询</view>
+      <view class="sub">剩余 {{aiQuota - aiUsed}} / {{aiQuota}} 次</view>
+      <input class="input" placeholder="输入问题..." value="{{aiQuestion}}" bindinput="onAiInput" />
+      <button class="primary-btn" loading="{{aiLoading}}" disabled="{{aiUsed >= aiQuota}}" bindtap="askAi">发送</button>
+      <view wx:if="{{aiAnswer}}" class="ai-answer">{{aiAnswer}}</view>
+    </view>
+  </view>
+</view>
