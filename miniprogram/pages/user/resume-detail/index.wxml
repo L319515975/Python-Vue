@@ -1,70 +1,87 @@
-﻿<view class="page">
-  <view class="card" wx:if="{{resume}}">
+﻿<view class="page resume-page">
+  <view class="card hero-card" wx:if="{{resume}}">
     <view class="title">{{resume.title || '我的简历'}}</view>
     <view class="sub">{{resume.summary || '暂无简介'}}</view>
     <view class="btn-row">
       <button size="mini" bindtap="goEdit">编辑</button>
-      <button size="mini" type="primary" bindtap="refresh">刷新</button>
+      <button size="mini" type="primary" loading="{{loading}}" bindtap="refresh">刷新</button>
     </view>
   </view>
 
-  <view class="card" wx:for="{{sections}}" wx:key="title">
-    <view class="section-title">{{item.title}}</view>
-    <block wx:if="{{item.items && item.items.length}}">
-      <view wx:if="{{typeof item.items[0] === 'object'}}">
-        <view class="sub-item" wx:for="{{item.items}}" wx:for-item="row" wx:key="title">
-          <text class="sub-title">{{row.title}}：</text>
-          <text class="sub-desc">{{row.desc}}</text>
-          <button class="polish-btn" size="mini" data-text="{{row.desc}}" data-module="{{item.title}}" bindtap="openPolisher">润色</button>
+  <view class="card" wx:else>
+    <view class="title">暂无简历</view>
+    <view class="sub">当前账号还没有简历，先创建一份再查看详情。</view>
+    <button class="primary-btn" bindtap="goEdit">去创建简历</button>
+  </view>
+
+  <block wx:if="{{resume}}">
+    <view class="card">
+      <view class="section-title">模块开关</view>
+      <view class="module-grid">
+        <view class="module-item {{module.checked ? 'module-item-active' : ''}}" wx:for="{{moduleList}}" wx:for-item="module" wx:key="name" data-name="{{module.name}}" bindtap="toggleModule">
+          <text class="module-label">{{module.label}}</text>
+          <text class="module-status">{{module.checked ? '已启用' : '未启用'}}</text>
         </view>
       </view>
-      <block wx:else>
-        <view class="text-item" wx:for="{{item.items}}" wx:for-item="row" wx:key="index">{{row}}</view>
-      </block>
+    </view>
+
+    <block wx:for="{{sections}}" wx:for-item="section" wx:key="title">
+      <view class="card">
+        <view class="section-title">{{section.title}}</view>
+        <block wx:if="{{section.kind == 'object'}}">
+          <view class="sub-item" wx:for="{{section.items}}" wx:for-item="row" wx:key="title">
+            <text class="sub-title">{{row.title}}</text>
+            <text class="sub-desc">{{row.desc}}</text>
+            <button class="polish-btn" size="mini" data-text="{{row.desc}}" data-module="{{section.title}}" bindtap="openPolisher">润色</button>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="text-item" wx:for="{{section.items}}" wx:for-item="row" wx:key="index">{{row}}</view>
+        </block>
+      </view>
     </block>
-    <view wx:else class="empty-hint">暂无内容</view>
-  </view>
 
-  <view class="card" wx:if="{{resume}}">
-    <view class="title">文件上传</view>
-    <view class="sub">支持 PDF / Word / Markdown 文件</view>
-    <button size="mini" loading="{{uploading}}" bindtap="uploadFile">上传简历文件</button>
-    <view wx:if="{{resume.file_name}}" class="file-name">当前文件：{{resume.file_name}}</view>
-  </view>
+    <view class="card">
+      <view class="section-title">标签</view>
+      <view class="tag-list">
+        <view class="tag {{tag.selected ? 'tag-selected' : ''}}" wx:for="{{tags}}" wx:for-item="tag" wx:key="id" data-value="{{tag.id}}" bindtap="toggleTag">{{tag.name}}</view>
+      </view>
+    </view>
 
-  <view class="card" wx:if="{{resume}}">
-    <view class="title">标签</view>
-    <view class="tag-list">
-      <view class="tag" wx:for="{{tags}}" wx:key="id" data-value="{{item.id}}" style="{{selectedTagIds.indexOf(item.id) >= 0 ? 'background:#1677ff;color:#fff;' : ''}}" bindtap="toggleTag">{{item.name}}</view>
+    <view class="card">
+      <view class="section-title">访客链接</view>
+      <block wx:if="{{visitor.url}}">
+        <view class="link-text">{{visitor.url}}</view>
+        <view class="sub">AI 配额：{{visitor.used}} / {{visitor.quota}}，剩余 {{visitor.remaining}}</view>
+        <view class="sub">到期时间：{{visitor.expires || '未设置'}}</view>
+        <view class="btn-row">
+          <button size="mini" bindtap="copyVisitorLink">复制链接</button>
+          <button size="mini" bindtap="refreshVisitorLink" loading="{{visitorLoading}}">刷新</button>
+          <button size="mini" type="primary" bindtap="generateVisitorLink">重新生成</button>
+          <button size="mini" type="warn" bindtap="disableVisitorLink">禁用</button>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="empty-hint">还没有生成访客链接。</view>
+        <button size="mini" type="primary" bindtap="generateVisitorLink">生成链接</button>
+      </block>
     </view>
-  </view>
 
-  <view class="card" wx:if="{{resume}}">
-    <view class="title">访客链接</view>
-    <view wx:if="{{visitor.url}}">
-      <view class="link-text">{{visitor.url}}</view>
-      <view class="sub">已用 AI：{{visitor.used}} / {{visitor.quota}} 次</view>
+    <view class="card">
+      <view class="section-title">AI 助手</view>
+      <view class="ai-chat">
+        <input class="input" placeholder="输入问题，例如：这份简历还缺什么？" value="{{aiQuestion}}" bindinput="onAiQuestionInput" />
+        <button size="mini" type="primary" loading="{{aiLoading}}" bindtap="askAi">发送</button>
+      </view>
+      <view wx:if="{{aiAnswer}}" class="ai-answer">{{aiAnswer}}</view>
     </view>
-    <view class="btn-row">
-      <button size="mini" bindtap="generateVisitorLink">生成链接</button>
-      <button size="mini" type="warn" bindtap="disableVisitorLink">禁用</button>
-    </view>
-  </view>
 
-  <view class="card" wx:if="{{resume}}">
-    <view class="title">AI 助手</view>
-    <view class="ai-chat">
-      <input class="input" placeholder="输入问题..." value="{{aiQuestion}}" bindinput="onAiQuestionInput" />
-      <button size="mini" type="primary" loading="{{aiLoading}}" bindtap="askAi">发送</button>
+    <view class="card">
+      <view class="btn-row">
+        <button bindtap="exportPdf">导出 PDF</button>
+      </view>
     </view>
-    <view wx:if="{{aiAnswer}}" class="ai-answer">{{aiAnswer}}</view>
-  </view>
-
-  <view class="card" wx:if="{{resume}}">
-    <view class="btn-row">
-      <button bindtap="exportPdf">导出 PDF</button>
-    </view>
-  </view>
+  </block>
 
   <view class="modal {{polishVisible ? 'modal-show' : ''}}">
     <view class="modal-content" wx:if="{{polishVisible}}">

@@ -3,7 +3,7 @@
 .page-head .title { margin-bottom: 8rpx; }
 .page-head .add-btn { flex-shrink: 0; padding: 0 24rpx; font-size: 24rpx; }
 .compact-card { padding: 20rpx; }
-.search-bar .input { flex: 1; min-width: 330rpx; }
+.search-bar .input { flex: 1; min-width: 0; }
 .search-btn { padding: 0 24rpx; font-size: 24rpx; }
 .picker { margin: 16rpx 0; font-size: 26rpx; color: #344054; }
 .modal-actions button { min-width: 150rpx; }

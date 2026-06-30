@@ -105,7 +105,7 @@ Write-Host ""
 
 # Start backend
 Write-Host "启动 Django 后端 (端口 8000)..." -ForegroundColor Cyan
-$backendProcess = Start-Process -FilePath "$backendDir\venv\Scripts\python.exe" -ArgumentList "manage.py runserver 0.0.0.0:8000" -WorkingDirectory $backendDir -PassThru -WindowStyle Normal
+$backendProcess = Start-Process -FilePath "$backendDir\venv\Scripts\python.exe" -ArgumentList "manage.py runserver 127.0.0.1:8000" -WorkingDirectory $backendDir -PassThru -WindowStyle Normal
 
 # Start frontend
 if (Test-Path "$frontendDir\package.json") {

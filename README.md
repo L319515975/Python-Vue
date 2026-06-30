@@ -287,7 +287,7 @@ python manage.py collectstatic --noinput
 python manage.py init_data  # 仅首次部署
 
 # 测试启动
-gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4
+gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 4
 
 # 创建 systemd 服务
 sudo tee /etc/systemd/system/resume-backend.service << EOF

@@ -13,7 +13,7 @@
     "pages/admin/hr-ai-logs/index"
   ],
   "window": {
-    "navigationBarTitleText": "智能简历系统",
+    "navigationBarTitleText": "Smart Resume System",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
     "backgroundTextStyle": "light"

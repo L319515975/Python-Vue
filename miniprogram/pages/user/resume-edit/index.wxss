@@ -2,10 +2,18 @@
 .label { font-size: 26rpx; color: #344054; display: block; margin-bottom: 10rpx; }
 .save-btn { width: 100%; margin-top: 16rpx; }
 .link-item { padding: 20rpx 0; color: #175cd3; font-size: 28rpx; text-align: center; }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.add-sub-btn { background: #12b76a; color: #fff; border-radius: 14rpx; font-size: 24rpx; padding: 0 18rpx; }
-.sub-item { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; padding: 18rpx 0; border-bottom: 1rpx solid #edf0f5; }
-.sub-name { flex: 1; font-size: 26rpx; color: #101828; }
-.sub-actions { display: flex; gap: 8rpx; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; gap: 16rpx; }
+.add-sub-btn { background: #12b76a; color: #fff; border-radius: 14rpx; font-size: 24rpx; padding: 0 18rpx; flex-shrink: 0; }
+.sub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #edf0f5;
+}
+.sub-name { flex: 1; font-size: 26rpx; color: #101828; line-height: 1.6; }
+.sub-actions { display: flex; gap: 8rpx; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
 .polish-link { color: #7c3aed; font-size: 24rpx; }
 .polish-result { background: #f8fafc; border: 1rpx solid #e5e7eb; border-radius: 16rpx; padding: 20rpx; font-size: 24rpx; margin-top: 12rpx; line-height: 1.7; }
+.card { margin-bottom: 24rpx; }

@@ -1,4 +1,4 @@
-<view class="page dashboard-page">
+﻿<view class="page dashboard-page">
   <view class="card hero-card">
     <view class="hero-top">
       <view>
@@ -7,7 +7,7 @@
       </view>
       <view class="hero-badge">管理员</view>
     </view>
-    <view class="hero-tip">汇总系统核心入口、统计数据和最近 AI 使用情况。</view>
+    <view class="hero-tip">汇总核心数据、快速进入常用页面，并通过右下角 AI 悬浮按钮直接提问。</view>
   </view>
 
   <view class="stat-grid">
@@ -70,14 +70,16 @@
       <text class="sub">{{recentLogs.length}} 条</text>
     </view>
     <view class="list">
-      <view class="log-row" wx:for="{{recentLogs}}" wx:key="id">
-        <view class="log-main">
-          <text class="log-query">{{item.query || item.original_text || '-'}}</text>
-          <text class="log-meta">{{item.created_at || ''}}</text>
+      <block wx:for="{{recentLogs}}" wx:for-item="log" wx:key="id">
+        <view class="log-row">
+          <view class="log-main">
+            <text class="log-query">{{log.query || log.original_text || '-'}}</text>
+            <text class="log-meta">{{log.created_at || ''}}</text>
+          </view>
+          <text class="log-arrow">›</text>
         </view>
-        <text class="log-arrow">›</text>
-      </view>
-      <view wx:if="{{recentLogs.length === 0 && !loading}}" class="empty">暂无记录</view>
+      </block>
+      <view wx:if="{{!loading && !recentLogs.length}}" class="empty">暂无记录</view>
     </view>
   </view>
 

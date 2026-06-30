@@ -13,7 +13,7 @@
   </view>
 
   <view class="list">
-    <view class="list-item" wx:for="{{users}}" wx:key="id">
+    <view class="list-item" wx:for="{{users}}" wx:for-item="item" wx:key="id">
       <view class="item-info">
         <text class="item-name">{{item.username}}</text>
         <text class="item-desc">{{item.email || '-'}} · {{item.role_display || item.role}} · {{item.is_active ? '启用' : '停用'}}</text>

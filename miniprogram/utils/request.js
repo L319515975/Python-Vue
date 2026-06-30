@@ -46,6 +46,10 @@ function refreshToken() {
         reject(normalizeError(res))
       },
       fail: function (err) {
+        if (err && /timeout/i.test(err.errMsg || '')) {
+          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          return
+        }
         reject(err)
       },
     })
@@ -102,6 +106,7 @@ function request(opts) {
   const header = opts.header || {}
   const skipAuth = opts.skipAuth || false
   const responseType = opts.responseType || 'json'
+  const timeout = opts.timeout || config.timeout || 15000
 
   return new Promise(function (resolve, reject) {
     const finalHeader = { 'content-type': 'application/json' }
@@ -120,6 +125,7 @@ function request(opts) {
       data: data,
       header: finalHeader,
       responseType: responseType,
+      timeout: timeout,
       success: function (res) {
         if (responseType !== 'json') {
           if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -145,6 +151,10 @@ function request(opts) {
         reject(normalizeError(res))
       },
       fail: function (err) {
+        if (err && /timeout/i.test(err.errMsg || '')) {
+          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          return
+        }
         reject(err)
       },
     })
@@ -184,6 +194,10 @@ function uploadFile(url, filePath, name, formData) {
         reject(new Error('上传失败'))
       },
       fail: function (err) {
+        if (err && /timeout/i.test(err.errMsg || '')) {
+          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          return
+        }
         reject(err)
       },
     })
@@ -215,6 +229,10 @@ function download(url, options) {
         reject(normalizeError(res))
       },
       fail: function (err) {
+        if (err && /timeout/i.test(err.errMsg || '')) {
+          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          return
+        }
         reject(err)
       },
     })
@@ -232,3 +250,4 @@ export default {
   uploadFile: uploadFile,
   download: download,
 }
+
