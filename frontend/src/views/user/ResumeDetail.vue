@@ -7,7 +7,7 @@
     - 包含"访客分享链接"管理功能：
       * 生成/禁用访客链接
       * 设置有效期、公开模块、允许下载
-      * 启用 HR 模式（HR 可使用 AI 助手）
+      * 启用 AI 模式（访客可使用 AI 助手）
       * 设置 AI 调用配额
     - 点击"编辑简历"按钮跳转到 ResumeEdit.vue
   关键 Vue 3 知识点：
@@ -153,7 +153,7 @@
            - 设置有效期（天数）
            - 是否允许下载 PDF
            - 选择公开哪些模块给访客看
-           - 启用 HR 模式（HR 可使用 AI 助手）
+           - 启用 AI 模式（访客可使用 AI 助手）
            - AI 功能开关和调用配额
         3. 一键复制链接功能
       -->
@@ -203,20 +203,20 @@
             </el-checkbox-group>
             <div class="form-tip">选择对访客可见的模块，不选则公开所有已启用模块</div>
           </el-form-item>
-          <!-- HR 模式：启用后 HR 可使用 AI 助手 -->
-          <el-form-item label="启用HR模式">
-            <el-switch v-model="visitorForm.hr_enabled" active-text="启用" inactive-text="禁用" :disabled="!visitorForm.enabled" />
-            <div class="form-tip">启用后HR可通过链接使用AI助手</div>
+          <!-- AI 模式：启用后访客可使用 AI 助手 -->
+          <el-form-item label="启用AI模式">
+            <el-switch v-model="visitorForm.visitor_ai_mode_enabled" active-text="启用" inactive-text="禁用" :disabled="!visitorForm.enabled" />
+            <div class="form-tip">启用后访客可通过链接使用AI助手</div>
           </el-form-item>
-          <!-- AI 功能开关（仅 HR 模式启用时显示） -->
-          <el-form-item v-if="visitorForm.hr_enabled" label="AI功能开关">
+          <!-- AI 功能开关（仅 AI 模式启用时显示） -->
+          <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI功能开关">
             <el-switch v-model="visitorForm.ai_enabled" active-text="开启" inactive-text="关闭" :disabled="!visitorForm.enabled" />
           </el-form-item>
-          <!-- AI 调用配额（仅 HR 模式启用时显示） -->
-          <el-form-item v-if="visitorForm.hr_enabled" label="AI调用配额">
+          <!-- AI 调用配额（仅 AI 模式启用时显示） -->
+          <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI调用配额">
             <el-input-number v-model="visitorForm.ai_quota" :min="1" :max="100" :disabled="!visitorForm.enabled" />
             <!-- 显示已用/总数配额 -->
-            <span v-if="visitorLink.visitor_hr_enabled" class="quota-usage">
+            <span v-if="visitorLink.visitor_ai_mode_enabled" class="quota-usage">
               已用: {{ visitorLink.visitor_ai_used || 0 }} / {{ visitorLink.visitor_ai_quota || 10 }}
             </span>
           </el-form-item>
@@ -272,7 +272,7 @@ const visitorForm = reactive({
   expires_days: 30,       // 有效期天数
   allow_download: false,  // 是否允许下载 PDF
   public_modules: [],     // 公开的模块列表
-  hr_enabled: false,      // 是否启用 HR 模式
+  visitor_ai_mode_enabled: false, // 是否启用 AI 模式
   ai_enabled: true,       // AI 功能是否开启
   ai_quota: 10            // AI 调用配额
 })
@@ -387,7 +387,7 @@ async function loadVisitorLinkInfo() {
     visitorForm.enabled = info.visitor_enabled || false
     visitorForm.allow_download = info.visitor_allow_download || false
     visitorForm.public_modules = info.public_modules || []
-    visitorForm.hr_enabled = info.visitor_hr_enabled || false
+    visitorForm.visitor_ai_mode_enabled = info.visitor_ai_mode_enabled || false
     visitorForm.ai_enabled = info.visitor_ai_enabled !== false
     visitorForm.ai_quota = info.visitor_ai_quota || 10
   } catch (e) {
@@ -408,7 +408,7 @@ async function saveVisitorLink() {
       expires_days: visitorForm.expires_days,
       allow_download: visitorForm.allow_download,
       public_modules: visitorForm.public_modules,
-      hr_enabled: visitorForm.hr_enabled,
+      visitor_ai_mode_enabled: visitorForm.visitor_ai_mode_enabled,
       ai_enabled: visitorForm.ai_enabled,
       ai_quota: visitorForm.ai_quota
     }

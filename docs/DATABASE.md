@@ -35,7 +35,7 @@ erDiagram
         DateTimeField visitor_expires
         BooleanField visitor_allow_download
         JSONField public_modules
-        BooleanField visitor_hr_enabled
+        BooleanField visitor_ai_mode_enabled
         BooleanField visitor_ai_enabled
         IntegerField visitor_ai_quota
         IntegerField visitor_ai_used
@@ -105,7 +105,7 @@ erDiagram
         DateTimeField created_at
     }
 
-    HRAiUsageLog {
+    VisitorAiUsageLog {
         BigAutoField id PK
         BigAutoField resume_id FK
         CharField visitor_token
@@ -158,7 +158,7 @@ erDiagram
     Resume ||--o{ WorkExperience : "工作经历"
     Resume ||--o{ Project : "项目经历"
     Resume ||--o{ Skill : "技能"
-    Resume ||--o{ HRAiUsageLog : "HR访客AI记录"
+    Resume ||--o{ VisitorAiUsageLog : "访客AI记录"
     Resume }o--o{ Tag : "标签(M2M)"
 ```
 
@@ -172,7 +172,7 @@ erDiagram
 | Resume → Project | 一对多 | 一份简历包含多条项目经历 |
 | Resume → Skill | 一对多 | 一份简历包含多项技能 |
 | Resume ↔ Tag | 多对多 | 简历与标签互相绑定，通过中间表关联 |
-| Resume → HRAiUsageLog | 一对多 | HR访客的AI调用记录归属到对应简历 |
+| Resume → VisitorAiUsageLog | 一对多 | 访客的AI调用记录归属到对应简历 |
 | User → AdminAuditLog | 一对多 | 审计日志记录操作管理员身份 |
 | User → QueryLog | 一对多 | AI查询日志关联到发起查询的用户 |
 | User → PolishLog | 一对多 | AI润色日志关联到发起润色的用户 |
@@ -183,5 +183,5 @@ erDiagram
 | 应用 | 表 |
 |------|----|
 | `apps.users` | User, AdminAuditLog |
-| `apps.resumes` | Resume, Tag, Education, WorkExperience, Project, Skill, HRAiUsageLog |
+| `apps.resumes` | Resume, Tag, Education, WorkExperience, Project, Skill, VisitorAiUsageLog |
 | `apps.ai_assistant` | QueryLog, PolishLog, ClassificationLog |

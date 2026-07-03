@@ -9,7 +9,7 @@ URL结构说明：
 - /api/users/login/          → 用户登录，获取JWT Token
 - /api/users/token/refresh/  → 刷新Token（Token过期后获取新Token）
 - /api/users/audit-logs/     → 操作审计日志（管理员）
-- /api/users/hr-ai-logs/     → HR AI使用日志（管理员）
+- /api/users/visitor-ai-logs/ → 访客 AI 使用日志（管理员）
 - /api/users/                → 用户列表/创建（ViewSet自动生成）
 - /api/users/{id}/           → 用户详情/更新/删除（ViewSet自动生成）
 - /api/users/me/             → 当前用户信息（自定义action）
@@ -18,7 +18,7 @@ URL结构说明：
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import UserViewSet, CustomTokenObtainPairView, audit_log_list, hr_ai_usage_log_list
+from .views import UserViewSet, CustomTokenObtainPairView, audit_log_list, visitor_ai_usage_log_list
 
 # DefaultRouter 会自动为ViewSet生成URL路由
 # 例如：UserViewSet 会自动生成 /users/ 和 /users/{pk}/ 两个路由
@@ -32,7 +32,7 @@ urlpatterns = [
 
     # 审计日志路由（使用独立的函数视图，不是ViewSet）
     path('audit-logs/', audit_log_list, name='audit-log-list'),
-    path('hr-ai-logs/', hr_ai_usage_log_list, name='hr-ai-usage-log-list'),
+    path('visitor-ai-logs/', visitor_ai_usage_log_list, name='visitor-ai-usage-log-list'),
 
     # include(router.urls) 引入ViewSet自动生成的所有路由
     path('', include(router.urls)),

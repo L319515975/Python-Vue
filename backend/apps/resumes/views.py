@@ -5,7 +5,7 @@
 1. 公开的访客 API（无需登录即可访问）
 2. 标签（Tag）的增删改查
 3. 简历（Resume）的增删改查，包括文件上传、模块管理、PDF导出
-4. 访客链接管理（支持HR模式和AI对话）
+4. 访客链接管理（支持 AI 模式和 AI 对话）
 5. 子模型（教育经历、工作经历、项目、技能）的增删改查
 
 知识点：
@@ -27,7 +27,7 @@ from django.http import FileResponse, JsonResponse  # Django 响应：文件下�
 from django.utils import timezone            # Django 时区工具，获取当前时间
 
 # 从本应用的 models.py 导入所有数据模型
-from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, HRAiUsageLog
+from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog
 # 从本应用的 serializers.py 导入所有序列化器
 from .serializers import (
     ResumeListSerializer, ResumeDetailSerializer, ResumeCreateUpdateSerializer,
@@ -38,7 +38,7 @@ from .serializers import (
 # 从访客工具模块导入安全和数据过滤函数
 from .visitor_utils import (
     verify_visitor_signature, is_visitor_link_valid, get_visitor_url,
-    filter_visitor_data, check_hr_ai_quota, generate_visitor_signature,
+    filter_visitor_data, check_visitor_ai_quota, generate_visitor_signature,
 )
 # 从用户应用导入自定义权限类
 from apps.users.permissions import IsAdminRole, IsOwnerOrAdmin
@@ -92,7 +92,7 @@ def _get_client_ip(request):
 
 
 # ========== 公开的访客 API（无需登录） ==========
-# 这些接口面向外部访客（如 HR 查看候选人简历），不需要 JWT 认证
+# 这些接口面向外部访客，不需要 JWT 认证
 
 @api_view(['GET'])                # 只接受 GET 请求
 @permission_classes([AllowAny])   # 允许任何人访问（无需登录）
@@ -104,15 +104,15 @@ def visitor_resume_view(request, token):
     1. 前端传入 token（简历的唯一访问标识）和签名参数
     2. 后端验证 HMAC 签名，防止链接被篡改
     3. 验证链接是否过期、是否被禁用
-    4. 如果是 HR 角色，还需检查 HR 模式是否开启
+    4. 如果是 AI 角色，还需检查 AI 模式是否开启
     5. 返回经过过滤的公开简历数据（隐藏敏感字段）
 
-    URL 示例：/api/resumes/visitor/abc123/?sig=xxx&expires=1234567890&role=hr
+    URL 示例：/api/resumes/visitor/abc123/?sig=xxx&expires=1234567890&role=ai
     """
     # 从 URL 查询参数中获取签名、过期时间和角色
     sig = request.query_params.get('sig', '')           # HMAC 签名
     expires = int(request.query_params.get('expires', 0))  # 链接过期时间戳（Unix时间戳）
-    role = request.query_params.get('role', 'visitor')   # 角色：'visitor' 或 'hr'
+    role = request.query_params.get('role', 'visitor')   # 角色：'visitor' 或 'ai'
 
     # 第一步：验证 HMAC 签名（防止链接被伪造或篡改）
     if not sig or not verify_visitor_signature(token, expires, sig, role):
@@ -138,9 +138,9 @@ def visitor_resume_view(request, token):
     if expires and expires < int(timezone.now().timestamp()):
         return JsonResponse({'detail': '访问链接已过期'}, status=404)
 
-    # 第五步：如果是 HR 角色，检查简历是否开启了 HR 模式
-    if role == 'hr' and not resume.visitor_hr_enabled:
-        return JsonResponse({'detail': '该链接未启用HR模式'}, status=403)
+    # 第五步：如果是 AI 角色，检查简历是否开启了 AI 模式
+    if role == 'ai' and not resume.visitor_ai_mode_enabled:
+        return JsonResponse({'detail': '该链接未启用AI模式'}, status=403)
 
     # 第六步：过滤敏感数据后返回（如隐藏联系方式、身份证等）
     data = filter_visitor_data(resume)
@@ -202,14 +202,14 @@ def visitor_download_pdf(request, token):
 @permission_classes([AllowAny])
 def visitor_ai_chat(request, token):
     """
-    公开接口：HR 访客 AI 对话。
+    公开接口：访客 AI 对话。
 
-    仅限 HR 角色使用，支持两种模式：
+    仅限 AI 角色使用，支持两种模式：
     - chat：基于简历内容的问答（如"这个人的项目经历是什么？"）
     - polish：文本润色（如优化一段简历描述）
 
     流程：
-    1. 验证签名和 HR 角色
+    1. 验证签名和 AI 角色
     2. 检查 AI 配额（每个访客链接有使用次数限制）
     3. 调用 AI 服务获取结果
     4. 更新已用配额并记录使用日志
@@ -218,11 +218,11 @@ def visitor_ai_chat(request, token):
     expires = int(request.query_params.get('expires', 0))
     role = request.query_params.get('role', 'visitor')
 
-    # 只允许 HR 角色使用 AI 功能
-    if role != 'hr':
+    # 只允许 AI 角色使用 AI 功能
+    if role != 'ai':
         return JsonResponse({'detail': '普通游客无权使用AI功能'}, status=403)
 
-    if not sig or not verify_visitor_signature(token, expires, sig, 'hr'):
+    if not sig or not verify_visitor_signature(token, expires, sig, 'ai'):
         return JsonResponse({'detail': '访问链接无效或已被篡改'}, status=404)
 
     try:
@@ -239,11 +239,11 @@ def visitor_ai_chat(request, token):
     if expires and expires < int(timezone.now().timestamp()):
         return JsonResponse({'detail': '访问链接已过期'}, status=404)
 
-    if not resume.visitor_hr_enabled:
-        return JsonResponse({'detail': '该链接未启用HR模式'}, status=403)
+    if not resume.visitor_ai_mode_enabled:
+        return JsonResponse({'detail': '该链接未启用AI模式'}, status=403)
 
     # 检查 AI 使用配额（防止滥用）
-    quota_info = check_hr_ai_quota(resume)
+    quota_info = check_visitor_ai_quota(resume)
     if not quota_info['available']:
         return JsonResponse({
             'detail': quota_info['reason'],    # 配额用尽的原因
@@ -273,9 +273,9 @@ def visitor_ai_chat(request, token):
         resume.visitor_ai_used += 1
         resume.save(update_fields=['visitor_ai_used'])  # 只更新这一个字段，提高效率
 
-        # 记录 HR AI 使用日志（用于统计和审计）
+        # 记录访客 AI 使用日志（用于统计和审计）
         ip = _get_client_ip(request)
-        HRAiUsageLog.objects.create(
+        VisitorAiUsageLog.objects.create(
             resume=resume,
             visitor_token=token,
             call_type=call_type,
@@ -306,7 +306,7 @@ def visitor_ai_chat(request, token):
         return JsonResponse(response_data, json_dumps_params={'ensure_ascii': False})
 
     except Exception as e:
-        logger.error(f'HR AI 对话失败: {e}')
+        logger.error(f'访客 AI 对话失败: {e}')
         return JsonResponse({'detail': f'AI服务调用失败: {str(e)}'}, status=500)
 
 
@@ -569,7 +569,7 @@ class ResumeViewSet(viewsets.ModelViewSet):
         resume.tags.set(tags)  # set() 方法会先清除旧的再设置新的
         return Response(ResumeDetailSerializer(resume).data)
 
-    # ========== 访客链接管理（支持HR模式） ==========
+    # ========== 访客链接管理（支持AI模式） ==========
 
     @action(detail=True, methods=['post'], url_path='generate-visitor-link')
     def generate_visitor_link(self, request, pk=None):
@@ -581,9 +581,9 @@ class ResumeViewSet(viewsets.ModelViewSet):
         - expires_days：链接有效期（天）
         - allow_download：是否允许下载 PDF
         - public_modules：公开哪些模块给访客
-        - hr_enabled：是否启用 HR 模式
-        - ai_enabled：是否允许 HR 使用 AI 功能
-        - ai_quota：HR 的 AI 使用配额（次数）
+        - visitor_ai_mode_enabled：是否启用 AI 模式
+        - ai_enabled：是否允许访客使用 AI 功能
+        - ai_quota：访客的 AI 使用配额（次数）
         """
         resume = self.get_object()
         serializer = VisitorLinkUpdateSerializer(data=request.data)
@@ -597,8 +597,8 @@ class ResumeViewSet(viewsets.ModelViewSet):
         if 'public_modules' in data:
             resume.public_modules = data['public_modules']
 
-        # HR 模式设置
-        resume.visitor_hr_enabled = data.get('hr_enabled', False)
+        # AI 模式设置
+        resume.visitor_ai_mode_enabled = data.get('visitor_ai_mode_enabled', False)
         resume.visitor_ai_enabled = data.get('ai_enabled', True)
         resume.visitor_ai_quota = data.get('ai_quota', 10)
         resume.visitor_ai_used = 0  # 重新生成时重置已用次数
@@ -612,10 +612,10 @@ class ResumeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='disable-visitor-link')
     def disable_visitor_link(self, request, pk=None):
-        """禁用访客链接（同时禁用 HR 模式）。"""
+        """禁用访客链接（同时禁用 AI 模式）。"""
         resume = self.get_object()
         resume.visitor_enabled = False
-        resume.visitor_hr_enabled = False
+        resume.visitor_ai_mode_enabled = False
         resume.save()
         return Response(VisitorLinkSerializer(resume, context={'request': request}).data)
 

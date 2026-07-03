@@ -3,8 +3,8 @@
   作用：访客简历展示页面
   说明：
     - 当用户通过"访客链接"访问简历时，会打开这个页面
-    - 根据 URL 参数决定是否为 HR 模式（role=hr）
-    - HR 模式下会显示右侧 AI 助手面板，支持对话问答和文本润色
+    - 根据 URL 参数决定是否为 AI 模式（role=ai）
+    - AI 模式下会显示右侧 AI 助手面板，支持对话问答和文本润色
     - 普通访客模式只展示简历内容
   关键 Vue 3 知识点：
     - ref()：创建响应式变量，值变化时页面自动更新
@@ -28,12 +28,12 @@
     <!-- ========== 有简历数据时显示主内容 ========== -->
     <template v-if="resume">
       <!--
-        HR 配额横幅：只在 HR 模式下显示
+        AI 配额横幅：只在 AI 模式下显示
         显示 AI 咨询剩余次数 / 总次数
       -->
-      <div v-if="isHRMode" class="hr-quota-banner">
+      <div v-if="isAiMode" class="ai-quota-banner">
         <el-icon><ChatDotRound /></el-icon>
-        <span>HR AI咨询剩余 <strong>{{ aiRemaining }}</strong> / {{ aiTotal }} 次</span>
+        <span>AI咨询剩余 <strong>{{ aiRemaining }}</strong> / {{ aiTotal }} 次</span>
         <el-tag v-if="aiRemaining <= 0" type="danger" size="small">配额已用尽</el-tag>
       </div>
       <!--
@@ -65,10 +65,10 @@
       </div>
       <!--
         主内容区域：
-        - HR 模式用双列布局（visitor-content-hr）
+        - AI 模式用双列布局（visitor-content-ai）
         - 普通模式用单列居中布局（visitor-content）
       -->
-      <div :class="isHRMode ? 'visitor-content-hr' : 'visitor-content'">
+      <div :class="isAiMode ? 'visitor-content-ai' : 'visitor-content'">
         <!-- ========== 左侧：简历模块展示区 ========== -->
         <div class="resume-modules">
           <!-- 教育经历模块：用时间线样式展示 -->
@@ -168,15 +168,15 @@
             </el-button>
           </section>
         </div>
-        <!-- ========== 右侧：HR AI 面板（仅 HR 模式显示） ========== -->
-        <div v-if="isHRMode" class="hr-ai-panel">
+        <!-- ========== 右侧：AI 面板（仅 AI 模式显示） ========== -->
+        <div v-if="isAiMode" class="ai-panel">
           <!-- AI 面板头部：显示状态和配额信息 -->
           <div class="ai-panel-header">
             <div class="ai-panel-header-left">
               <div class="ai-panel-icon">
                 <el-icon><ChatDotRound /></el-icon>
               </div>
-              <span>HR AI助手</span>
+              <span>AI助手</span>
             </div>
             <el-tag v-if="aiRemaining > 0" type="success" size="small">可用</el-tag>
             <el-tag v-else type="danger" size="small">已用尽</el-tag>
@@ -235,7 +235,7 @@
               </el-button>
             </div>
           </div>
-          <!-- 文本润色区域：HR 可粘贴简历片段，AI 优化表达 -->
+          <!-- 文本润色区域：访客可粘贴简历片段，AI 优化表达 -->
           <div class="ai-polish-section">
             <el-divider>文本润色</el-divider>
             <el-input
@@ -333,9 +333,9 @@ const error = ref('')
 // PDF 下载中的加载状态
 const downloading = ref(false)
 
-// ==================== HR 模式相关 ====================
-// isHRMode 计算属性：URL 参数 role=hr 且简历启用HR功能时为 true
-const isHRMode = computed(() => route.query.role === 'hr' && resume.value?.hr_enabled)
+// ==================== AI 模式相关 ====================
+// isAiMode 计算属性：URL 参数 role=ai 且简历启用AI功能时为 true
+const isAiMode = computed(() => route.query.role === 'ai' && resume.value?.visitor_ai_mode_enabled)
 // AI 剩余调用次数
 const aiRemaining = ref(0)
 // AI 总配额次数
@@ -420,7 +420,7 @@ async function sendChat() {
   try {
     // 从 URL 获取访客 token 和签名参数
     const token = route.params.token
-    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'hr' }
+    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'ai' }
     // call_type='chat' 表示对话模式
     const res = await visitorApi.aiChat(token, params, { query, call_type: 'chat' })
     chatMessages.value.push({ role: 'assistant', text: res.response || '无回复' })
@@ -451,7 +451,7 @@ async function doPolish() {
 
   try {
     const token = route.params.token
-    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'hr' }
+    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'ai' }
     const res = await visitorApi.aiChat(token, params, { query: polishInput.value.trim(), call_type: 'polish' })
     // 优先使用 polished_text，如果没有则使用 response
     polishResult.value = res.polished_text || res.response || '润色失败'
@@ -501,7 +501,7 @@ async function downloadPdf() {
 
 /**
  * onMounted：组件挂载到页面后自动执行（"页面打开时自动运行"）
- * 流程：读取URL参数 -> 请求简历数据 -> 初始化HR配额 -> 处理错误
+ * 流程：读取URL参数 -> 请求简历数据 -> 初始化AI配额 -> 处理错误
  */
 onMounted(async () => {
   loading.value = true
@@ -517,8 +517,8 @@ onMounted(async () => {
     }
     const data = await visitorApi.getResume(token, params)
     resume.value = data
-    // 如果启用了 HR 功能，初始化 AI 配额
-    if (data.hr_enabled) {
+    // 如果启用了 AI 功能，初始化 AI 配额
+    if (data.visitor_ai_mode_enabled) {
       aiRemaining.value = data.ai_remaining || 0
       aiTotal.value = data.ai_quota || 0
     }
@@ -543,8 +543,8 @@ onMounted(async () => {
   background: #f5f7fa;
 }
 
-/* HR Quota Banner */
-.hr-quota-banner {
+/* AI Quota Banner */
+.ai-quota-banner {
   background: linear-gradient(135deg, #ecf5ff 0%, #e8f4fd 100%);
   border-bottom: 1px solid #d9ecff;
   padding: 10px 20px;
@@ -558,7 +558,7 @@ onMounted(async () => {
   z-index: 100;
 }
 
-.hr-quota-banner strong {
+.ai-quota-banner strong {
   font-size: 18px;
   color: #303133;
 }
@@ -642,8 +642,8 @@ onMounted(async () => {
   padding: 32px 20px;
 }
 
-/* HR 2-column layout */
-.visitor-content-hr {
+/* AI 2-column layout */
+.visitor-content-ai {
   max-width: 1400px;
   margin: 0 auto;
   padding: 32px 20px;
@@ -657,8 +657,8 @@ onMounted(async () => {
   min-width: 0;
 }
 
-/* HR AI Panel */
-.hr-ai-panel {
+/* AI Panel */
+.ai-panel {
   width: 420px;
   min-width: 380px;
   background: #fff;
@@ -1150,10 +1150,10 @@ onMounted(async () => {
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .visitor-content-hr {
+  .visitor-content-ai {
     flex-direction: column;
   }
-  .hr-ai-panel {
+  .ai-panel {
     width: 100%;
     min-width: auto;
     position: static;

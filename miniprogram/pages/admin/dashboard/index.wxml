@@ -69,12 +69,12 @@
           <view class="quick-desc">分类标签维护</view>
         </view>
       </view>
-      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/hr-ai-logs/index">
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/visitor-ai-logs/index">
         <view class="quick-icon">
           <t-icon name="chart-bar" size="32rpx" />
         </view>
         <view class="quick-copy">
-          <view class="quick-title">HR AI 日志</view>
+          <view class="quick-title">访客 AI 日志</view>
           <view class="quick-desc">调用记录与结果回溯</view>
         </view>
       </view>

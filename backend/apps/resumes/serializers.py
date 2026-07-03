@@ -4,7 +4,7 @@
 本文件包含：
 1. 标签序列化器（TagSerializer / TagCreateSerializer）
 2. 子模型序列化器（教育、工作经历、项目、技能）
-3. 访客链接序列化器（VisitorLinkSerializer / VisitorLinkUpdateSerializer）
+    3. 访客链接序列化器（VisitorLinkSerializer / VisitorLinkUpdateSerializer）
 4. 简历序列化器（列表版/详情版/创建更新版）
 5. PDF 导出请求序列化器（PdfExportSerializer）
 
@@ -102,7 +102,7 @@ class VisitorLinkSerializer(serializers.ModelSerializer):
 
     包含两部分字段：
     1. 基础访客字段：是否启用、token、过期时间、允许下载等
-    2. HR 模式字段：HR 模式开关、AI 功能开关、AI 配额
+    2. AI 模式字段：AI 模式开关、AI 功能开关、AI 配额
 
     visitor_url 是通过 SerializerMethodField 动态生成的完整访问链接。
     """
@@ -117,11 +117,11 @@ class VisitorLinkSerializer(serializers.ModelSerializer):
             'visitor_allow_download',   # 是否允许下载
             'public_modules',           # 公开的模块列表
             'visitor_url',              # 完整的访客访问 URL（动态生成）
-            # HR 模式字段
-            'visitor_hr_enabled',       # 是否启用 HR 模式
-            'visitor_ai_enabled',       # 是否允许 HR 使用 AI
-            'visitor_ai_quota',         # HR 的 AI 使用配额
-            'visitor_ai_used',          # HR 已使用的 AI 次数
+            # AI 模式字段
+            'visitor_ai_mode_enabled',  # 是否启用 AI 模式
+            'visitor_ai_enabled',       # 是否允许访客使用 AI
+            'visitor_ai_quota',         # 访客的 AI 使用配额
+            'visitor_ai_used',          # 访客已使用的 AI 次数
         ]
         read_only_fields = ['visitor_token', 'visitor_ai_used']
 
@@ -196,7 +196,7 @@ class ResumeDetailSerializer(serializers.ModelSerializer):
                   'educations', 'work_experiences', 'projects', 'skills',
                   'visitor_enabled', 'visitor_token', 'visitor_expires',
                   'visitor_allow_download', 'public_modules', 'visitor_url',
-                  'visitor_hr_enabled', 'visitor_ai_enabled',
+                  'visitor_ai_mode_enabled', 'visitor_ai_enabled',
                   'visitor_ai_quota', 'visitor_ai_used',
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'ai_processed', 'ai_classification_result',
@@ -234,7 +234,7 @@ class ResumeCreateUpdateSerializer(serializers.ModelSerializer):
                   'enabled_modules', 'module_data', 'tags',
                   'visitor_enabled', 'visitor_expires', 'visitor_allow_download',
                   'public_modules',
-                  'visitor_hr_enabled', 'visitor_ai_enabled',
+                  'visitor_ai_mode_enabled', 'visitor_ai_enabled',
                   'visitor_ai_quota']
         read_only_fields = ['id']
 
@@ -312,7 +312,7 @@ class VisitorLinkUpdateSerializer(serializers.Serializer):
     """
     访客链接更新请求序列化器 —— 验证链接配置参数。
 
-    包含基础访客设置和 HR 模式设置。
+    包含基础访客设置和 AI 模式设置。
     所有字段都是可选的（required=False），只更新传入的字段。
     """
     enabled = serializers.BooleanField(required=False)
@@ -322,8 +322,8 @@ class VisitorLinkUpdateSerializer(serializers.Serializer):
         child=serializers.CharField(),
         required=False,
     )
-    # HR 模式字段
-    hr_enabled = serializers.BooleanField(required=False, default=False)
+    # AI 模式字段
+    visitor_ai_mode_enabled = serializers.BooleanField(required=False, default=False)
     ai_enabled = serializers.BooleanField(required=False, default=True)
     ai_quota = serializers.IntegerField(required=False, min_value=1, max_value=100, default=10)
 

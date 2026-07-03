@@ -4,7 +4,7 @@
 1. 用户登录（JWT Token获取）
 2. 用户管理CRUD（管理员可管理所有用户，普通用户只能管理自己）
 3. 操作审计日志查询（管理员专用）
-4. HR AI使用日志查询（管理员专用）
+4. 访客 AI 使用日志查询（管理员专用）
 
 Django REST Framework中的ViewSet概念：
 - ViewSet将多个相关的HTTP请求处理函数组合在一个类中
@@ -243,13 +243,13 @@ def audit_log_list(request):
     return paginator.get_paginated_response(data)
 
 
-# ── HR AI使用日志 API（管理员专用）──────────────────────────────────
-# 记录HR通过访客链接使用AI功能的情况，用于监控AI使用量和成本
+# ── 访客 AI 使用日志 API（管理员专用）──────────────────────────────────
+# 记录访客通过链接使用AI功能的情况，用于监控AI使用量和成本
 
 @api_view(['GET'])
 @pc([IsAdminRole])
-def hr_ai_usage_log_list(request):
-    """HR AI使用日志列表API。
+def visitor_ai_usage_log_list(request):
+    """访客 AI 使用日志列表API。
 
     支持的查询参数：
     - call_type: 按调用类型过滤（chat=AI咨询, polish=文本润色）
@@ -257,12 +257,12 @@ def hr_ai_usage_log_list(request):
     - username: 按简历所属用户名过滤
 
     这个API帮助管理员监控：
-    - 哪些HR在使用AI功能
+    - 哪些访客在使用AI功能
     - AI调用消耗了多少Token
     - 是否存在滥用情况
     """
-    from apps.resumes.models import HRAiUsageLog
-    logs = HRAiUsageLog.objects.select_related('resume', 'resume__user').all()
+    from apps.resumes.models import VisitorAiUsageLog
+    logs = VisitorAiUsageLog.objects.select_related('resume', 'resume__user').all()
 
     # 按调用类型过滤
     call_type = request.query_params.get('call_type')

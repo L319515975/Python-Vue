@@ -9,7 +9,7 @@ Django Admin是Django自带的后台管理界面，访问 /admin/ 即可进入�
 - fieldsets: 编辑页的字段分组
 """
 from django.contrib import admin
-from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, HRAiUsageLog
+from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog
 
 
 @admin.register(Tag)
@@ -34,7 +34,7 @@ class ResumeAdmin(admin.ModelAdmin):
         ('模块', {'fields': ('tags', 'enabled_modules', 'module_data')}),
         ('AI', {'fields': ('ai_processed', 'ai_classification_result')}),
         ('游客链接', {'fields': ('visitor_enabled', 'visitor_token', 'visitor_expires', 'visitor_allow_download', 'public_modules')}),
-        ('HR模式', {'fields': ('visitor_hr_enabled', 'visitor_ai_enabled', 'visitor_ai_quota', 'visitor_ai_used')}),
+        ('AI模式', {'fields': ('visitor_ai_mode_enabled', 'visitor_ai_enabled', 'visitor_ai_quota', 'visitor_ai_used')}),
     )
 
 
@@ -72,9 +72,9 @@ class AdminAuditLogAdmin(admin.ModelAdmin):
     readonly_fields = ['admin_user', 'action', 'target_user', 'detail', 'ip_address', 'created_at']
 
 
-@admin.register(HRAiUsageLog)
-class HRAiUsageLogAdmin(admin.ModelAdmin):
-    """HR AI使用日志管理后台 - 所有字段只读。"""
+@admin.register(VisitorAiUsageLog)
+class VisitorAiUsageLogAdmin(admin.ModelAdmin):
+    """访客 AI 使用日志管理后台 - 所有字段只读。"""
     list_display = ['visitor_token', 'call_type', 'tokens_used', 'ip_address', 'created_at']
     list_filter = ['call_type', 'created_at']
     search_fields = ['visitor_token', 'query_text']

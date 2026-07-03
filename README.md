@@ -1,6 +1,6 @@
 ﻿# 智能简历管理系统 (Smart Resume Hub)
 
-基于 Django 4.2 + Vue 3 的三角色权限简历管理系统，集成 AI 智能助手，支持访客免登录访问，包含 HR 访客模式与 AI 配额管控。
+基于 Django 4.2 + Vue 3 的三角色权限简历管理系统，集成 AI 智能助手，支持访客免登录访问，包含访客 AI 模式与 AI 配额管控。
 
 ## 技术栈
 
@@ -25,19 +25,19 @@
 
 | 角色 | 登录方式 | 核心权限 |
 |------|----------|----------|
-| **管理员** | 账号密码 | 系统配置、用户管理、权限分配、数据监控、所有简历查看/编辑/删除、操作审计、HR AI日志查看 |
-| **用户** | 账号密码 | 管理个人简历（CRUD、润色、下载）、生成/管理访客链接、配置 HR 模式与 AI 配额、设置公开模块 |
+| **管理员** | 账号密码 | 系统配置、用户管理、权限分配、数据监控、所有简历查看/编辑/删除、操作审计、访客 AI 日志查看 |
+| **用户** | 账号密码 | 管理个人简历（CRUD、润色、下载）、生成/管理访客链接、配置访客 AI 模式与 AI 配额、设置公开模块 |
 | **访客** | 免登录 (`/visitor/<token>`) | 查看指定用户的公开简历模块、下载简历（若用户授权） |
-| **HR访客** | 免登录 (HR专属链接) | 查看简历、AI智能问答、文本润色（有配额限制）、下载简历（若授权） |
+| **AI访客** | 免登录 (专属链接) | 查看简历、AI智能问答、文本润色（有配额限制）、下载简历（若授权） |
 
-### HR 访客模式
+### 访客 AI 模式
 
-HR 访客模式专为企业招聘方设计，支持免登录访问候选人简历并使用 AI 功能：
+访客 AI 模式专为外部查看者设计，支持免登录访问简历并使用 AI 功能：
 
-- **链接结构**: `/visitor/<token>?role=hr&sig=HMAC(...)&expires=XXX`
-- **AI配额**: 用户可自定义 HR 链接的 AI 调用次数（1-100次）
+- **链接结构**: `/visitor/<token>?role=ai&sig=HMAC(...)&expires=XXX`
+- **AI配额**: 用户可自定义访客链接的 AI 调用次数（1-100次）
 - **签名安全**: HMAC-SHA256 签名包含 role 参数，防止角色篡改
-- **审计日志**: 所有 HR AI 调用记录完整保存，管理员可查看
+- **审计日志**: 所有访客 AI 调用记录完整保存，管理员可查看
 - **配额提示**: 页面实时显示剩余调用次数，超限后灰化 AI 按钮
 
 ### 核心功能
@@ -48,10 +48,10 @@ HR 访客模式专为企业招聘方设计，支持免登录访问候选人简�
    - 自然语言查询简历信息
    - 一键文本润色（带差异对比）
    - 上传文件自动归类到对应模块
-   - HR 访客 AI 问答与润色（配额控制）
+   - 访客 AI 问答与润色（配额控制）
 4. **PDF 导出**: 选择模块生成定制化 PDF 简历
-5. **访客分享**: HMAC-SHA256 签名链接，支持普通访客和 HR 访客两种模式
-6. **操作审计**: 管理员操作全程记录 + HR AI 使用日志
+5. **访客分享**: HMAC-SHA256 签名链接，支持普通访客和 AI 访客两种模式
+6. **操作审计**: 管理员操作全程记录 + 访客 AI 使用日志
 7. **移动端适配**: 响应式布局，支持手机和平板访问
 
 ## 快速开始
@@ -72,7 +72,7 @@ pip install -r requirements.txt
 python manage.py makemigrations users resumes ai_assistant
 python manage.py migrate
 
-# 初始化示例数据（含HR访客链接示例）
+# 初始化示例数据（含访客 AI 链接示例）
 python manage.py init_data
 
 # 启动后端服务
@@ -124,7 +124,7 @@ OPENAI_MODEL=gpt-3.5-turbo
 | 管理员 | admin | admin123 |
 | 普通用户 | zhangsan | user123 |
 
-初始化数据后，zhangsan 的简历自动生成 HR 访客分享链接（有效期30天，允许下载，AI配额10次）。
+初始化数据后，zhangsan 的简历自动生成访客 AI 分享链接（有效期30天，允许下载，AI配额10次）。
 
 
 ## 数据库设计
@@ -475,14 +475,14 @@ LOGGING = {
 - `POST /api/resumes/{id}/export-pdf/` - 导出 PDF
 
 ### 访客链接管理
-- `POST /api/resumes/{id}/generate-visitor-link/` - 生成/更新访客链接（支持 HR 模式参数: hr_enabled, ai_enabled, ai_quota）
+- `POST /api/resumes/{id}/generate-visitor-link/` - 生成/更新访客链接（支持访客 AI 模式参数: ai_mode_enabled, ai_enabled, ai_quota）
 - `POST /api/resumes/{id}/disable-visitor-link/` - 禁用访客链接
 - `GET /api/resumes/{id}/visitor-link-info/` - 获取链接设置
 
 ### 访客公开接口（无需认证）
-- `GET /api/resumes/visitor/<token>/?sig=...&expires=...&role=hr` - 查看公开简历（HR模式含AI元数据）
+- `GET /api/resumes/visitor/<token>/?sig=...&expires=...&role=ai` - 查看公开简历（AI模式含AI元数据）
 - `GET /api/resumes/visitor/<token>/download/?sig=...&expires=...` - 下载 PDF
-- `POST /api/resumes/visitor/<token>/ai-chat/?sig=...&expires=...&role=hr` - HR AI 咨询/润色（配额控制）
+- `POST /api/resumes/visitor/<token>/ai-chat/?sig=...&expires=...&role=ai` - 访客 AI 咨询/润色（配额控制）
 
 ### AI 助手
 - `POST /api/ai/chat/` - AI 查询（已登录用户）
@@ -490,16 +490,16 @@ LOGGING = {
 
 ### 审计日志（管理员）
 - `GET /api/users/audit-logs/` - 操作审计日志
-- `GET /api/users/hr-ai-logs/` - HR AI 使用日志
+- `GET /api/users/visitor-ai-logs/` - 访客 AI 使用日志
 
 ## 访客链接安全机制
 
 访客链接使用 HMAC-SHA256 签名防篡改：
 
-1. 用户在"我的简历"页面生成访客链接，可配置 HR 模式、有效期、公开模块、下载权限、AI 配额
+1. 用户在"我的简历"页面生成访客链接，可配置访客 AI 模式、有效期、公开模块、下载权限、AI 配额
 2. 后端生成唯一 token，拼接过期时间戳和 role 参数后用 HMAC-SHA256 签名
 3. 访客访问时，后端验证签名完整性、链接有效期、简历发布状态、role 参数
-4. HR 模式下检查 AI 配额，每次调用递增已用计数并记录审计日志
+4. AI 模式下检查 AI 配额，每次调用递增已用计数并记录审计日志
 5. 仅返回用户选定的公开模块数据，隐藏联系方式等敏感信息
 
 ## 许可证

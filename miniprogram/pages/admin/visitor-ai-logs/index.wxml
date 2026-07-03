@@ -9,6 +9,6 @@
       <view class="log-detail">{{item.query_text || '-'}}</view>
       <view class="log-meta">Token: {{item.tokens_used || 0}} {{item.created_at || ''}} {{item.ip_address || ''}}</view>
     </view>
-    <view wx:if="{{logs.length === 0 && !loading}}" class="empty">暂无 HR AI 日志</view>
+    <view wx:if="{{logs.length === 0 && !loading}}" class="empty">暂无访客 AI 日志</view>
   </view>
 </view>

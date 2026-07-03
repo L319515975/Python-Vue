@@ -43,7 +43,7 @@ def generate_visitor_signature(token: str, expires_timestamp: int, role: str = '
     参数：
         token: 访客访问Token
         expires_timestamp: 过期时间的Unix时间戳（秒）
-        role: 访客角色（'visitor' 或 'hr'）
+        role: 访客角色（'visitor' 或 'ai'）
 
     返回：
         64位十六进制签名字符串
@@ -107,7 +107,7 @@ def get_visitor_url(resume, request=None) -> str:
 
     URL格式示例：
     普通访客：/visitor/{token}?expires=1234567890&sig=abc123...
-    HR模式：/visitor/{token}?expires=1234567890&sig=abc123...&role=hr&quota=10
+    AI模式：/visitor/{token}?expires=1234567890&sig=abc123...&role=ai&quota=10
 
     参数：
         resume: 简历对象
@@ -126,8 +126,8 @@ def get_visitor_url(resume, request=None) -> str:
     if resume.visitor_expires:
         expires_ts = int(resume.visitor_expires.timestamp())
 
-    # 根据是否启用HR模式决定签名角色
-    role = 'hr' if resume.visitor_hr_enabled else 'visitor'
+    # 根据是否启用AI模式决定签名角色
+    role = 'ai' if resume.visitor_ai_mode_enabled else 'visitor'
     sig = generate_visitor_signature(resume.visitor_token, expires_ts, role)
 
     # 构建基础URL
@@ -143,23 +143,23 @@ def get_visitor_url(resume, request=None) -> str:
         params.append(f'expires={expires_ts}')
     params.append(f'sig={sig}')
 
-    if resume.visitor_hr_enabled:
-        params.append(f'role=hr')
+    if resume.visitor_ai_mode_enabled:
+        params.append(f'role=ai')
         params.append(f'quota={resume.visitor_ai_quota}')
 
     url += '?' + '&'.join(params)
     return url
 
 
-def check_hr_ai_quota(resume) -> dict:
-    """检查HR访客的AI调用配额是否还有剩余。
+def check_visitor_ai_quota(resume) -> dict:
+    """检查访客 AI 调用配额是否还有剩余。
 
     返回：
         {'available': True, 'remaining': 5, 'total': 10}
         或 {'available': False, 'reason': '配额已用尽', ...}
     """
-    if not resume.visitor_hr_enabled:
-        return {'available': False, 'remaining': 0, 'total': 0, 'reason': 'HR模式未启用'}
+    if not resume.visitor_ai_mode_enabled:
+        return {'available': False, 'remaining': 0, 'total': 0, 'reason': 'AI模式未启用'}
 
     if not resume.visitor_ai_enabled:
         return {'available': False, 'remaining': 0, 'total': resume.visitor_ai_quota, 'reason': 'AI功能已禁用'}
@@ -177,7 +177,7 @@ def filter_visitor_data(resume) -> dict:
     这个函数的职责是：
     1. 只返回用户设置为公开的模块数据
     2. 排除敏感信息（如联系方式、文件路径等）
-    3. 如果启用了HR模式，附带HR相关的元数据（AI配额等）
+    3. 如果启用了AI模式，附带相关的元数据（AI配额等）
 
     返回：
         包含公开简历数据的字典
@@ -191,12 +191,12 @@ def filter_visitor_data(resume) -> dict:
         'tags': [],
         'modules': {},
         'visitor_allow_download': resume.visitor_allow_download,
-        # HR模式元数据
-        'hr_enabled': resume.visitor_hr_enabled,
-        'ai_enabled': resume.visitor_ai_enabled if resume.visitor_hr_enabled else False,
-        'ai_quota': resume.visitor_ai_quota if resume.visitor_hr_enabled else 0,
-        'ai_used': resume.visitor_ai_used if resume.visitor_hr_enabled else 0,
-        'ai_remaining': max(0, resume.visitor_ai_quota - resume.visitor_ai_used) if resume.visitor_hr_enabled else 0,
+        # AI模式元数据
+        'visitor_ai_mode_enabled': resume.visitor_ai_mode_enabled,
+        'ai_enabled': resume.visitor_ai_enabled if resume.visitor_ai_mode_enabled else False,
+        'ai_quota': resume.visitor_ai_quota if resume.visitor_ai_mode_enabled else 0,
+        'ai_used': resume.visitor_ai_used if resume.visitor_ai_mode_enabled else 0,
+        'ai_remaining': max(0, resume.visitor_ai_quota - resume.visitor_ai_used) if resume.visitor_ai_mode_enabled else 0,
     }
 
     # 标签（公开信息）

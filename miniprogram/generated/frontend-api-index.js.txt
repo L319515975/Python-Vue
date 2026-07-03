@@ -85,7 +85,7 @@ export const visitorApi = {
     params,
     responseType: 'blob',  // 返回二进制文件
   }),
-  // HR 访客 AI 对话（params 包含签名参数，data 包含查询内容）
+  // 访客 AI 对话（params 包含签名参数，data 包含查询内容）
   aiChat: (token, params, data) => request.post(`/resumes/visitor/${token}/ai-chat/`, data, { params }),
 }
 
@@ -142,7 +142,7 @@ export const auditLogApi = {
   list: (params) => request.get('/users/audit-logs/', { params }),
 }
 
-// ========== HR AI 使用日志 API（管理员专用） ==========
-export const hrAiUsageApi = {
-  list: (params) => request.get('/users/hr-ai-logs/', { params }),
+// ========== 访客 AI 使用日志 API（管理员专用） ==========
+export const visitorAiUsageApi = {
+  list: (params) => request.get('/users/visitor-ai-logs/', { params }),
 }

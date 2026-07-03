@@ -137,7 +137,7 @@ def ask_ai(user=None, query: str = '', resume=None) -> dict:
     参数：
     - user：用户对象（普通用户场景）
     - query：用户的问题文本
-    - resume：简历对象（访客/HR 场景，直接传简历避免再查一次数据库）
+    - resume：简历对象（访客 AI 场景，直接传简历避免再查一次数据库）
 
     返回值：
     - { 'response': 'AI的回答', 'intent': '识别的意图', 'tokens_used': 150 }
@@ -665,7 +665,7 @@ def build_resume_context_from_resume(resume) -> str:
 
     与 build_resume_context(user) 的区别：
     - 这个函数直接接收 Resume 对象，不需要先查数据库
-    - 在访客/HR 场景中使用（已经持有 Resume 对象时避免重复查询）
+    - 在访客 AI 场景中使用（已经持有 Resume 对象时避免重复查询）
 
     构建的内容包括：
     1. 简历标题和摘要

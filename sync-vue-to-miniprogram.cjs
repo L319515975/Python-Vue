@@ -34,7 +34,7 @@ const expectedMiniPages = [
   'pages/admin/tag-manage/index',
   'pages/admin/ai-logs/index',
   'pages/admin/audit-log/index',
-  'pages/admin/hr-ai-logs/index',
+  'pages/admin/visitor-ai-logs/index',
 ]
 
 const pageTitles = {
@@ -48,7 +48,7 @@ const pageTitles = {
   'pages/admin/tag-manage/index': '标签管理',
   'pages/admin/ai-logs/index': 'AI 日志',
   'pages/admin/audit-log/index': '审计日志',
-  'pages/admin/hr-ai-logs/index': 'HR AI 日志',
+  'pages/admin/visitor-ai-logs/index': '访客 AI 日志',
 }
 
 function readText(filePath) {

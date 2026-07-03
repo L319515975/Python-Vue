@@ -16,7 +16,7 @@ URL路由说明：
 - /api/resumes/skills/                   → 技能CRUD
 - /api/resumes/visitor/{token}/          → 访客查看简历（无需登录）
 - /api/resumes/visitor/{token}/download/ → 访客下载PDF
-- /api/resumes/visitor/{token}/ai-chat/  → HR访客AI对话
+- /api/resumes/visitor/{token}/ai-chat/  → 访客AI对话
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

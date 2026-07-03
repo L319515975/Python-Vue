@@ -8,7 +8,7 @@
 - Skill（技能）：简历下的技能记录
 - Tag（标签）：用于简历分类的标签系统
 - AdminAuditLog（审计日志）：记录管理员的操作
-- HRAiUsageLog（HR AI使用日志）：记录HR使用AI功能的情况
+- VisitorAiUsageLog（访客 AI 使用日志）：记录访客使用 AI 功能的情况
 
 模型关系说明：
 - Resume 与 User 是一对一关系（一个用户一份简历）
@@ -66,7 +66,7 @@ class Resume(models.Model):
     2. 模块系统：可配置的简历模块（教育、工作、项目、技能等）
     3. 文件管理：支持上传简历文件
     4. AI功能：AI自动分类和处理
-    5. 访客链接：支持生成分享链接，HR可通过链接查看简历
+    5. 访客链接：支持生成分享链接，访客可通过链接查看简历
 
     模块系统说明：
     - FIXED_MODULES：固定模块，始终包含（个人信息、联系方式）
@@ -148,12 +148,12 @@ class Resume(models.Model):
     # public_modules：对访客公开的模块列表，为空则公开所有已启用模块
     public_modules = models.JSONField(default=list, blank=True, help_text='对游客公开的模块列表，为空则公开所有已启用模块', verbose_name='公开模块列表')
 
-    # ── HR模式相关字段 ──────────────────────────────────
-    # HR模式允许招聘方通过链接使用AI助手分析简历
-    visitor_hr_enabled = models.BooleanField(default=False, help_text='是否启用HR模式（HR可通过链接使用AI助手）', verbose_name='HR模式启用')
-    visitor_ai_enabled = models.BooleanField(default=True, help_text='HR游客是否可使用AI功能', verbose_name='HR AI功能开关')
-    visitor_ai_quota = models.IntegerField(default=10, help_text='HR游客AI调用总配额', verbose_name='HR AI调用配额')
-    visitor_ai_used = models.IntegerField(default=0, help_text='HR游客已使用的AI调用次数', verbose_name='HR AI已用次数')
+    # ── AI模式相关字段 ──────────────────────────────────
+    # AI模式允许访客通过链接使用AI助手分析简历
+    visitor_ai_mode_enabled = models.BooleanField(default=False, help_text='是否启用AI模式（访客可通过链接使用AI助手）', verbose_name='AI模式启用')
+    visitor_ai_enabled = models.BooleanField(default=True, help_text='访客是否可使用AI功能', verbose_name='AI功能开关')
+    visitor_ai_quota = models.IntegerField(default=10, help_text='访客AI调用总配额', verbose_name='AI调用配额')
+    visitor_ai_used = models.IntegerField(default=0, help_text='访客已使用的AI调用次数', verbose_name='AI已用次数')
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -318,12 +318,12 @@ class Skill(models.Model):
         return f'{self.name} ({self.level}%)'
 
 
-class HRAiUsageLog(models.Model):
-    """HR AI使用日志 - 记录HR通过访客链接使用AI功能的情况。
+class VisitorAiUsageLog(models.Model):
+    """访客 AI 使用日志 - 记录访客通过链接使用 AI 功能的情况。
 
     用于：
     1. 监控AI使用量和Token消耗
-    2. 追踪哪些HR在使用AI功能
+    2. 追踪哪些访客在使用AI功能
     3. 配额管理（防止滥用）
     4. 安全审计
     """
@@ -332,8 +332,8 @@ class HRAiUsageLog(models.Model):
         CHAT = 'chat', 'AI咨询'
         POLISH = 'polish', '文本润色'
 
-    resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='hr_ai_logs', verbose_name='关联简历')
-    visitor_token = models.CharField(max_length=64, help_text='HR游客链接的token标识', verbose_name='访客Token')
+    resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='visitor_ai_logs', verbose_name='关联简历')
+    visitor_token = models.CharField(max_length=64, help_text='访客链接的token标识', verbose_name='访客Token')
     call_type = models.CharField(max_length=10, choices=CallType.choices, verbose_name='调用类型')
     query_text = models.TextField(blank=True, default='', verbose_name='查询/润色内容')
     response_text = models.TextField(blank=True, default='', verbose_name='AI回复内容')
@@ -342,9 +342,9 @@ class HRAiUsageLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='调用时间')
 
     class Meta:
-        verbose_name = 'HR AI使用日志'
-        verbose_name_plural = 'HR AI使用日志'
+        verbose_name = '访客 AI 使用日志'
+        verbose_name_plural = '访客 AI 使用日志'
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'HR({self.visitor_token[:8]}) {self.get_call_type_display()} - {self.created_at}'
+        return f'AI({self.visitor_token[:8]}) {self.get_call_type_display()} - {self.created_at}'

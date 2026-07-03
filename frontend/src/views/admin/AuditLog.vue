@@ -1,9 +1,9 @@
 ﻿<!--
-  操作审计页面 AuditLog.vue —— 管理员查看操作审计和 HR AI 使用日志。
+  操作审计页面 AuditLog.vue —— 管理员查看操作审计和访客 AI 使用日志。
 
   功能：
   1. 操作审计日志：记录管理员的所有敏感操作（创建/修改/删除用户、简历、标签等）
-  2. HR AI 使用日志：记录 HR 访客使用 AI 功能的记录
+  2. 访客 AI 使用日志：记录访客使用 AI 功能的记录
 
   使用 el-tabs 实现两个标签页切换。
 -->
@@ -70,12 +70,12 @@
         </el-card>
       </el-tab-pane>
 
-      <!-- ========== HR AI 使用日志标签页 ========== -->
-      <el-tab-pane label="HR AI使用日志" name="hr-ai">
+      <!-- ========== 访客 AI 使用日志标签页 ========== -->
+      <el-tab-pane label="访客 AI使用日志" name="visitor-ai">
         <el-card>
           <template #header>
             <div class="card-header">
-              <span>HR AI调用日志</span>
+              <span>访客 AI调用日志</span>
               <el-button icon="Refresh" @click="loadHrLogs">刷新</el-button>
             </div>
           </template>
@@ -136,10 +136,10 @@
  *
  * 包含两个日志模块：
  * 1. 管理员操作审计：记录所有敏感操作
- * 2. HR AI 使用日志：记录访客 HR 使用 AI 的记录
+ * 2. 访客 AI 使用日志：记录访客使用 AI 的记录
  */
 import { ref, reactive, onMounted } from 'vue'
-import { auditLogApi, hrAiUsageApi } from '@/api'
+import { auditLogApi, visitorAiUsageApi } from '@/api'
 
 const activeTab = ref('audit')
 
@@ -171,7 +171,7 @@ const actionOptions = [
   { value: 'other', label: '其他' },
 ]
 
-// ========== HR AI 使用日志状态 ==========
+// ========== 访客 AI 使用日志状态 ==========
 const hrLogs = ref([])
 const hrLoading = ref(false)
 const hrPage = ref(1)
@@ -216,14 +216,14 @@ async function loadLogs() {
   }
 }
 
-/** 加载 HR AI 使用日志。 */
+/** 加载访客 AI 使用日志。 */
 async function loadHrLogs() {
   hrLoading.value = true
   try {
     const params = { page: hrPage.value, page_size: hrPageSize.value }
     if (hrFilters.call_type) params.call_type = hrFilters.call_type
     if (hrFilters.username) params.username = hrFilters.username
-    const res = await hrAiUsageApi.list(params)
+    const res = await visitorAiUsageApi.list(params)
     hrLogs.value = res.results || []
     hrTotal.value = res.count || 0
   } catch (e) {

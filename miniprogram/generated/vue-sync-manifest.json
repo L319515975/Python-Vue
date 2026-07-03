@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-06-30T08:55:18.301Z",
+  "updatedAt": "2026-07-03T14:54:22.764Z",
   "note": "由 sync-vue-to-miniprogram.cjs 自动生成，用于追踪 Vue3 与小程序的同步状态。",
   "sourceHashes": {
-    "frontendApi": "eba3be8b18e6607cb1f1ee7ebc517f80717d75205429c5b9b0c1b6bc5811f613",
-    "frontendRouter": "b7138612021e7f9297f6ed2c3be48f6666be637cdecffbe59bc0a58bd5785ef8",
-    "miniprogramApi": "deacb061332c09e82246e116893f99929aa7d1766fec72611bac82dd9926e0c2"
+    "frontendApi": "6f65093eb28578189e707d3acfe3c827182d5b633906daa6891d78c9f0d7ea07",
+    "frontendRouter": "a7c6bce95b435960bb2493cf89915ea19aabe45ec06a66203fb793867506a2f5",
+    "miniprogramApi": "0b40e73276f89719d13361840add6d803ff56ee3f3e359b16d0bf332f367ffa3"
   },
   "frontendRoutes": [
     {
@@ -265,7 +265,7 @@
     },
     {
       "method": "GET",
-      "url": "/users/hr-ai-logs/"
+      "url": "/users/visitor-ai-logs/"
     }
   ],
   "miniprogramPages": [
@@ -279,7 +279,7 @@
     "pages/admin/tag-manage/index",
     "pages/admin/ai-logs/index",
     "pages/admin/audit-log/index",
-    "pages/admin/hr-ai-logs/index"
+    "pages/admin/visitor-ai-logs/index"
   ],
   "frontendSourceFiles": [
     "frontend/src/api/index.js",

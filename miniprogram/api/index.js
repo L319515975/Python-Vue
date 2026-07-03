@@ -89,6 +89,6 @@ export const auditLogApi = {
   list: (params) => request.get('/users/audit-logs/', wrapPage(params)),
 }
 
-export const hrAiUsageApi = {
-  list: (params) => request.get('/users/hr-ai-logs/', wrapPage(params)),
+export const visitorAiUsageApi = {
+  list: (params) => request.get('/users/visitor-ai-logs/', wrapPage(params)),
 }

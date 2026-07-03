@@ -10,7 +10,7 @@
     "pages/admin/tag-manage/index",
     "pages/admin/ai-logs/index",
     "pages/admin/audit-log/index",
-    "pages/admin/hr-ai-logs/index"
+    "pages/admin/visitor-ai-logs/index"
   ],
   "window": {
     "navigationBarTitleText": "智能简历系统",
