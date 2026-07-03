@@ -81,22 +81,22 @@ Page({
   async askFloatingAi() {
     const question = (this.data.floatingQuestion || '').trim()
     if (!question) {
-      wx.showToast({ title: 'Please enter a question', icon: 'none' })
+      wx.showToast({ title: '请输入问题', icon: 'none' })
       return
     }
     if (this.data.floatingSubmitting) return
 
     this.setData({ floatingSubmitting: true })
     try {
-      const data = await aiApi.chat(question)
+      const data = await aiApi.chat('你是管理后台 AI 助手，可以根据指定用户或简历信息回答。用户问题：' + question)
       wx.showModal({
-        title: 'AI Reply',
-        content: data.response || 'No reply yet',
+        title: 'AI 回复',
+        content: data.response || '暂无回复',
         showCancel: false,
       })
       this.setData({ floatingQuestion: '', floatingVisible: false })
     } catch (error) {
-      wx.showToast({ title: error.message || 'AI request failed', icon: 'none' })
+      wx.showToast({ title: error.message || 'AI 请求失败', icon: 'none' })
     } finally {
       this.setData({ floatingSubmitting: false })
     }
@@ -104,8 +104,8 @@ Page({
 
   handleLogout() {
     wx.showModal({
-      title: 'Logout',
-      content: 'Confirm logout from current account?',
+      title: '退出登录',
+      content: '确认退出当前账号？',
       success: function (result) {
         if (!result.confirm) return
         clearAuth()

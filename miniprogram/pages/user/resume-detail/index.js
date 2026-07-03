@@ -1,4 +1,14 @@
-import { resumeApi, tagApi } from '../../../api/index'
+import { resumeApi, tagApi, aiApi } from '../../../api/index'
+
+const moduleLabelMap = {
+  education: '教育经历',
+  work_experience: '工作经历',
+  project: '项目经历',
+  skill: '技能',
+  certificate: '证书',
+  award: '奖项',
+  language: '语言',
+}
 
 function unwrapList(result) {
   if (Array.isArray(result)) return result
@@ -24,6 +34,12 @@ function joinText(values, separator) {
   return (values || []).filter(function (item) {
     return item !== undefined && item !== null && item !== ''
   }).join(separator || ', ')
+}
+
+function formatModuleNames(values) {
+  return joinText((values || []).map(function (item) {
+    return moduleLabelMap[item] || item
+  }), '、') || '-'
 }
 
 function emptyVisitor() {
@@ -55,6 +71,10 @@ Page({
     exportModuleNames: [],
     visitor: emptyVisitor(),
     visitorLoading: false,
+    aiVisible: false,
+    aiQuestion: '',
+    aiSubmitting: false,
+    aiAnswer: '',
   },
 
   onLoad(options) {
@@ -70,6 +90,53 @@ Page({
 
   refresh() {
     this.loadPage()
+  },
+
+  toggleAi() {
+    if (!this.data.resume) return
+    this.setData({ aiVisible: !this.data.aiVisible })
+  },
+
+  closeAi() {
+    this.setData({ aiVisible: false })
+  },
+
+  onAiInput(e) {
+    this.setData({ aiQuestion: e.detail.value })
+  },
+
+  async askAi() {
+    if (!this.data.resume) return
+
+    const question = (this.data.aiQuestion || '').trim()
+    if (!question) {
+      wx.showToast({ title: '请输入问题', icon: 'none' })
+      return
+    }
+    if (this.data.aiSubmitting) return
+
+    const prompt = [
+      '你是当前用户的简历助手，只能基于当前登录用户自己的简历信息回答。',
+      '当前简历标题：' + (this.data.resume.title || '-'),
+      '当前简历状态：' + (this.data.resume.status || '-'),
+      '当前简历简介：' + (this.data.resume.summary || '-'),
+      '已启用模块：' + formatModuleNames(this.data.resume.enabled_modules),
+      '用户问题：' + question,
+    ].join('\n')
+
+    this.setData({ aiSubmitting: true })
+    try {
+      const data = await aiApi.chat(prompt)
+      this.setData({
+        aiAnswer: data.response || '暂无回复',
+        aiQuestion: '',
+        aiVisible: true,
+      })
+    } catch (error) {
+      wx.showToast({ title: error && error.message ? error.message : 'AI 请求失败', icon: 'none' })
+    } finally {
+      this.setData({ aiSubmitting: false })
+    }
   },
 
   async fetchDetail() {
@@ -107,6 +174,10 @@ Page({
           moduleList: [],
           exportModuleNames: [],
           visitor: emptyVisitor(),
+          aiVisible: false,
+          aiQuestion: '',
+          aiSubmitting: false,
+          aiAnswer: '',
           loading: false,
         })
         return
@@ -114,7 +185,7 @@ Page({
 
       this.applyDetail(detail, tagList)
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Load failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }
   },
@@ -134,32 +205,33 @@ Page({
       moduleList: this.buildModuleOptions(detail),
       exportModuleNames: detail.enabled_modules || [],
       visitor: this.buildVisitor(detail),
+      aiAnswer: '',
       loading: false,
     })
   },
 
   buildSections(detail) {
     const sections = []
-    const enabledModulesText = joinText(detail.enabled_modules, ', ') || '-'
+    const enabledModulesText = formatModuleNames(detail.enabled_modules)
 
     sections.push({
-      title: 'Overview',
+      title: '概览',
       kind: 'text',
       items: [
-        'Title: ' + (detail.title || '-'),
-        'Status: ' + (detail.status || '-'),
-        'Summary: ' + (detail.summary || '-'),
-        'Modules: ' + enabledModulesText,
+        '标题：' + (detail.title || '-'),
+        '状态：' + (detail.status || '-'),
+        '简介：' + (detail.summary || '-'),
+        '模块：' + enabledModulesText,
       ],
     })
 
     if (detail.educations && detail.educations.length) {
       sections.push({
-        title: 'Education',
+        title: '教育经历',
         kind: 'object',
         items: detail.educations.map(function (item) {
           return {
-            title: (item.school || '-') + ' - ' + (item.major || '-'),
+            title: (item.school || '-') + ' · ' + (item.major || '-'),
             desc: joinText([item.degree, formatDate(item.start_date) + ' ~ ' + formatDate(item.end_date), item.description], '\n'),
           }
         }),
@@ -168,11 +240,11 @@ Page({
 
     if (detail.work_experiences && detail.work_experiences.length) {
       sections.push({
-        title: 'Work',
+        title: '工作经历',
         kind: 'object',
         items: detail.work_experiences.map(function (item) {
           return {
-            title: (item.company || '-') + ' - ' + (item.position || '-'),
+            title: (item.company || '-') + ' · ' + (item.position || '-'),
             desc: joinText([formatDate(item.start_date) + ' ~ ' + formatDate(item.end_date), item.description], '\n'),
           }
         }),
@@ -181,7 +253,7 @@ Page({
 
     if (detail.projects && detail.projects.length) {
       sections.push({
-        title: 'Projects',
+        title: '项目经历',
         kind: 'object',
         items: detail.projects.map(function (item) {
           return {
@@ -194,12 +266,12 @@ Page({
 
     if (detail.skills && detail.skills.length) {
       sections.push({
-        title: 'Skills',
+        title: '技能',
         kind: 'object',
         items: detail.skills.map(function (item) {
           return {
             title: item.name || '-',
-            desc: joinText(['Category: ' + (item.category || '-'), 'Level: ' + String(item.level || 0) + '%'], '\n'),
+            desc: joinText(['分类：' + (item.category || '-'), '熟练度：' + String(item.level || 0) + '%'], '\n'),
           }
         }),
       })
@@ -223,23 +295,14 @@ Page({
       used: used,
       remaining: Math.max(0, quota - used),
       publicModules: detail.public_modules || [],
-      publicModulesText: joinText(detail.public_modules, ', ') || '-',
+      publicModulesText: formatModuleNames(detail.public_modules),
     }
   },
 
   buildModuleOptions(detail) {
-    const moduleMap = {
-      education: 'Education',
-      work_experience: 'Work',
-      project: 'Project',
-      skill: 'Skill',
-      certificate: 'Certificate',
-      award: 'Award',
-      language: 'Language',
-    }
     const enabledModules = detail.enabled_modules || []
-    return Object.keys(moduleMap).map(function (name) {
-      return { name: name, label: moduleMap[name], checked: enabledModules.indexOf(name) >= 0 }
+    return Object.keys(moduleLabelMap).map(function (name) {
+      return { name: name, label: moduleLabelMap[name], checked: enabledModules.indexOf(name) >= 0 }
     })
   },
 
@@ -264,7 +327,7 @@ Page({
       const detail = await resumeApi.updateModules(this.data.resume.id, { enabled_modules: enabledModules })
       this.applyDetail(detail || this.data.resume, this.data.tagList)
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Update failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '更新失败', icon: 'none' })
       this.loadPage()
     }
   },
@@ -289,7 +352,7 @@ Page({
       const detail = await resumeApi.setTags(this.data.resume.id, selectedTagIds)
       this.applyDetail(detail || this.data.resume, this.data.tagList)
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Update failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '更新失败', icon: 'none' })
       this.loadPage()
     }
   },
@@ -302,7 +365,7 @@ Page({
       const response = await resumeApi.visitorLinkInfo(this.data.resume.id)
       this.setData({ visitor: this.buildVisitor(response || this.data.resume) })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Refresh failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '刷新失败', icon: 'none' })
     } finally {
       this.setData({ visitorLoading: false })
     }
@@ -322,9 +385,9 @@ Page({
       })
       const merged = Object.assign({}, this.data.resume, response || {})
       this.setData({ resume: merged, visitor: this.buildVisitor(merged) })
-      wx.showToast({ title: 'Generated', icon: 'success' })
+      wx.showToast({ title: '已生成', icon: 'success' })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Generate failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '生成失败', icon: 'none' })
     }
   },
 
@@ -335,22 +398,22 @@ Page({
       const response = await resumeApi.disableVisitorLink(this.data.resume.id)
       const merged = Object.assign({}, this.data.resume, response || {})
       this.setData({ resume: merged, visitor: this.buildVisitor(merged) })
-      wx.showToast({ title: 'Disabled', icon: 'success' })
+      wx.showToast({ title: '已停用', icon: 'success' })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Disable failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '停用失败', icon: 'none' })
     }
   },
 
   copyVisitorLink() {
     if (!this.data.visitor.url) {
-      wx.showToast({ title: 'No link', icon: 'none' })
+      wx.showToast({ title: '暂无链接', icon: 'none' })
       return
     }
 
     wx.setClipboardData({
       data: this.data.visitor.url,
       success: function () {
-        wx.showToast({ title: 'Copied', icon: 'success' })
+        wx.showToast({ title: '已复制', icon: 'success' })
       },
     })
   },
@@ -373,7 +436,7 @@ Page({
 
       wx.openDocument({ filePath: filePath, fileType: 'pdf' })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Export failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '导出失败', icon: 'none' })
     }
   },
 })

@@ -16,7 +16,7 @@ function emptySubForm(type) {
   if (type === 'project') {
     return { name: '', role: '', start_date: '', end_date: '', description: '', tech_stack: '', order: 0 }
   }
-  return { name: '', level: 50, category: 'Skill', order: 0 }
+  return { name: '', level: 50, category: '技能', order: 0 }
 }
 
 function normalizeSubForm(type, data, resumeId) {
@@ -36,6 +36,8 @@ Page({
     resume: null,
     loading: false,
     form: { title: '', summary: '' },
+    titleFocused: false,
+    summaryFocused: false,
     educations: [],
     workExperiences: [],
     projects: [],
@@ -83,7 +85,7 @@ Page({
         skills: detail.skills || [],
       })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Load failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '加载失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })
     }
@@ -98,8 +100,24 @@ Page({
     this.setData({ form: Object.assign({}, this.data.form, { title: e.detail.value }) })
   },
 
+  onTitleFocus() {
+    this.setData({ titleFocused: true })
+  },
+
+  onTitleBlur() {
+    this.setData({ titleFocused: false })
+  },
+
   onSummaryInput(e) {
     this.setData({ form: Object.assign({}, this.data.form, { summary: e.detail.value }) })
+  },
+
+  onSummaryFocus() {
+    this.setData({ summaryFocused: true })
+  },
+
+  onSummaryBlur() {
+    this.setData({ summaryFocused: false })
   },
 
   async saveResume() {
@@ -114,22 +132,22 @@ Page({
         summary: this.data.form.summary,
       })
       this.setData({ resume: detail, resumeId: String(detail.id) })
-      wx.showToast({ title: 'Saved', icon: 'success' })
+      wx.showToast({ title: '已保存', icon: 'success' })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Save failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '保存失败', icon: 'none' })
     }
   },
 
   async createResume() {
     try {
       const detail = await resumeApi.create({
-        title: this.data.form.title || 'My Resume',
+        title: this.data.form.title || '我的简历',
         summary: this.data.form.summary || '',
       })
       this.setData({ resume: detail, resumeId: String(detail.id) })
-      wx.showToast({ title: 'Created', icon: 'success' })
+      wx.showToast({ title: '已创建', icon: 'success' })
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Create failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '创建失败', icon: 'none' })
     }
   },
 
@@ -188,11 +206,11 @@ Page({
       } else {
         await api.create(payload)
       }
-      wx.showToast({ title: 'Saved', icon: 'success' })
+      wx.showToast({ title: '已保存', icon: 'success' })
       this.hideSubForm()
       this.loadResume()
     } catch (error) {
-      wx.showToast({ title: error && error.message ? error.message : 'Save failed', icon: 'none' })
+      wx.showToast({ title: error && error.message ? error.message : '保存失败', icon: 'none' })
     }
   },
 
@@ -203,16 +221,16 @@ Page({
     const that = this
 
     wx.showModal({
-      title: 'Delete item',
-      content: 'Confirm delete this record?',
+      title: '删除条目',
+      content: '确认删除这条记录吗？',
       success: async function (result) {
         if (!result.confirm) return
         try {
           await api.delete(id)
-          wx.showToast({ title: 'Deleted', icon: 'success' })
+          wx.showToast({ title: '已删除', icon: 'success' })
           that.loadResume()
         } catch (error) {
-          wx.showToast({ title: error && error.message ? error.message : 'Delete failed', icon: 'none' })
+          wx.showToast({ title: error && error.message ? error.message : '删除失败', icon: 'none' })
         }
       },
     })

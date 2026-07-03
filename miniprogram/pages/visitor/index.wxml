@@ -1,28 +1,111 @@
-<view class="page">
-  <view wx:if="{{!resume}}" class="card">
-    <view class="title">访客模式</view>
-    <view class="sub">请输入分享链接中的 token 查看简历</view>
-    <input class="input" placeholder="访客 token" value="{{token}}" bindinput="onTokenInput" />
-    <button class="primary-btn" bindtap="loadResume">加载简历</button>
-  </view>
-
-  <view wx:if="{{resume}}" class="content">
-    <view class="card">
-      <view class="title">{{resume.title || '简历'}}</view>
-      <view class="sub">{{resume.summary || ''}}</view>
+<view class="page visitor-page">
+  <view class="card hero-card surface">
+    <view class="hero-top">
+      <view class="hero-copy">
+        <view class="title">{{resume ? (resume.title || '简历预览') : '访客查看'}}</view>
+        <view class="sub">{{resume ? (resume.summary || '通过访客链接查看公开内容。') : '输入分享访问码后查看公开简历内容。'}}</view>
+      </view>
+      <t-tag theme="{{resume ? 'primary' : 'success'}}" variant="light" shape="round" size="small">{{resume ? '已加载' : '待输入'}}</t-tag>
     </view>
 
-    <view class="card" wx:for="{{sections}}" wx:key="title">
-      <view class="section-title">{{item.title}}</view>
-      <view wx:for="{{item.items}}" wx:for-item="row" wx:key="index" class="section-item">{{row}}</view>
-    </view>
-
-    <view class="card" wx:if="{{aiEnabled}}">
-      <view class="title">AI 咨询</view>
-      <view class="sub">剩余 {{aiQuota - aiUsed}} / {{aiQuota}} 次</view>
-      <input class="input" placeholder="输入问题..." value="{{aiQuestion}}" bindinput="onAiInput" />
-      <button class="primary-btn" loading="{{aiLoading}}" disabled="{{aiUsed >= aiQuota}}" bindtap="askAi">发送</button>
-      <view wx:if="{{aiAnswer}}" class="ai-answer">{{aiAnswer}}</view>
+    <view wx:if="{{resume}}" class="hero-tags">
+      <t-tag theme="primary" variant="light" shape="round" size="small">状态：{{resume.status || '未知'}}</t-tag>
+      <t-tag theme="success" variant="light" shape="round" size="small">公开模块：{{sections.length}}</t-tag>
+      <t-tag theme="warning" variant="light" shape="round" size="small">AI：{{aiEnabled ? '已开启' : '未开启'}}</t-tag>
     </view>
   </view>
+
+  <view wx:if="{{!resume}}" class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">访客访问码</view>
+        <view class="section-subtitle">请输入分享链接中的访问码进入公开预览。</view>
+      </view>
+    </view>
+
+    <view class="form-stack t-mt-4">
+      <view class="field-row">
+        <text class="field-label">访问码</text>
+        <view class="field-shell {{tokenFocused ? 'is-focused' : ''}}">
+          <t-input
+            t-class="field-input"
+            borderless="{{true}}"
+            clearable="{{true}}"
+            clearTrigger="always"
+            placeholder="请输入访客访问码"
+            value="{{token}}"
+            bind:change="onTokenInput"
+            bind:focus="onTokenFocus"
+            bind:blur="onTokenBlur"
+          />
+        </view>
+      </view>
+
+      <t-button block="{{true}}" theme="primary" size="large" shape="round" loading="{{loading}}" bind:tap="loadResume">
+        加载简历
+      </t-button>
+    </view>
+  </view>
+
+  <block wx:if="{{resume}}">
+    <view wx:if="{{sections.length}}" class="card surface section-card">
+      <view class="section-head">
+        <view>
+          <view class="section-title">公开内容</view>
+          <view class="section-subtitle">按模块展示访客可查看的信息。</view>
+        </view>
+        <t-tag theme="primary" variant="light" shape="round" size="small">{{sections.length}} 项</t-tag>
+      </view>
+
+      <view class="section-list t-mt-4">
+        <view class="public-section" wx:for="{{sections}}" wx:key="title" wx:for-item="item">
+          <view class="public-section-title">{{item.title}}</view>
+          <view class="public-section-item" wx:for="{{item.items}}" wx:for-item="row" wx:key="index">{{row}}</view>
+        </view>
+      </view>
+    </view>
+
+    <t-empty wx:else description="暂无可展示内容" />
+
+    <view class="card surface section-card" wx:if="{{aiEnabled}}">
+      <view class="section-head">
+        <view>
+          <view class="section-title">AI 咨询</view>
+          <view class="section-subtitle">剩余 {{aiQuota - aiUsed}} / {{aiQuota}} 次提问机会。</view>
+        </view>
+        <t-tag theme="warning" variant="light" shape="round" size="small">{{aiQuota - aiUsed}} 次剩余</t-tag>
+      </view>
+
+      <view class="form-stack t-mt-4">
+        <view class="field-row">
+          <text class="field-label">问题</text>
+          <view class="field-shell field-shell-textarea {{questionFocused ? 'is-focused' : ''}}">
+            <t-textarea
+              t-class="field-textarea"
+              bordered="{{false}}"
+              autosize="{{true}}"
+              indicator="{{true}}"
+              placeholder="请输入你想咨询的问题"
+              value="{{aiQuestion}}"
+              bind:change="onAiInput"
+              bind:focus="onAiFocus"
+              bind:blur="onAiBlur"
+            />
+          </view>
+        </view>
+
+        <t-button block="{{true}}" theme="primary" size="large" shape="round" loading="{{aiLoading}}" disabled="{{aiLoading}}" bind:tap="askAi">
+          发起咨询
+        </t-button>
+
+        <view wx:if="{{aiAnswer}}" class="ai-answer">{{aiAnswer}}</view>
+      </view>
+    </view>
+
+    <view class="card surface action-card">
+      <t-button block="{{true}}" variant="outline" shape="round" icon="refresh" loading="{{loading}}" bind:tap="loadResume">
+        重新加载
+      </t-button>
+    </view>
+  </block>
 </view>

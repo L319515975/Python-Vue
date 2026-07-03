@@ -40,7 +40,7 @@ Page({
   async saveTag() {
     const name = (this.data.name || '').trim()
     if (!name) {
-      wx.showToast({ title: 'Please enter a tag name', icon: 'none' })
+      wx.showToast({ title: '请输入标签名称', icon: 'none' })
       return
     }
     try {

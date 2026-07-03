@@ -1,43 +1,80 @@
 <view class="page admin-list-page">
-  <view class="card page-head">
+  <view class="card page-head surface">
     <view>
       <view class="title">简历管理</view>
       <view class="sub">查看用户简历，支持新增、编辑、删除和进入详情。</view>
     </view>
-    <button class="add-btn" bindtap="openCreate">新增简历</button>
+    <t-button theme="primary" shape="round" icon="add" bind:tap="openCreate">新增简历</t-button>
   </view>
 
-  <view class="search-bar card compact-card">
-    <input class="input" placeholder="搜索标题 / 用户名" value="{{searchKey}}" bindinput="onSearchInput" />
-    <button class="search-btn" bindtap="loadResumes">搜索</button>
+  <view class="card search-shell surface">
+    <view class="search-bar">
+      <t-input
+        class="search-input"
+        borderless="{{true}}"
+        clearable="{{true}}"
+        clearTrigger="always"
+        prefixIcon="search"
+        placeholder="搜索标题或用户名"
+        value="{{searchKey}}"
+        bind:change="onSearchInput"
+      />
+      <t-button theme="primary" variant="outline" shape="round" icon="search" bind:tap="loadResumes">搜索</t-button>
+    </view>
   </view>
 
-  <view class="list">
-    <view class="list-item" wx:for="{{resumes}}" wx:for-item="item" wx:key="id">
-      <view class="item-info" bindtap="openDetail" data-id="{{item.id}}">
-        <text class="item-name">{{item.title || '未命名简历'}}</text>
-        <text class="item-desc">{{item.username || '-'}} · {{item.status || '-'}}</text>
+  <view wx:if="{{loading}}" class="state-panel">
+    <t-loading loading="{{true}}" text="正在加载简历" />
+  </view>
+
+  <t-empty wx:elif="{{resumes.length === 0}}" description="暂无简历" />
+
+  <view wx:else class="list">
+    <view class="card resume-card surface" wx:for="{{resumes}}" wx:for-item="item" wx:key="id">
+      <view class="resume-head">
+        <view class="item-info">
+          <text class="item-name">{{item.title || '未命名简历'}}</text>
+          <text class="item-desc">{{item.username || '-'}} · {{item.summary || '暂无简介'}}</text>
+        </view>
+        <view class="resume-tags">
+          <t-tag theme="primary" variant="light" size="small">{{item.status || 'draft'}}</t-tag>
+        </view>
       </view>
-      <view class="actions">
-        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="openEdit">编辑</button>
-        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteResume">删除</button>
+      <view class="resume-actions">
+        <t-button size="small" variant="outline" shape="round" icon="browse" data-id="{{item.id}}" bind:tap="openDetail">详情</t-button>
+        <t-button size="small" variant="outline" shape="round" icon="edit" data-id="{{item.id}}" bind:tap="openEdit">编辑</t-button>
+        <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-id="{{item.id}}" bind:tap="deleteResume">删除</t-button>
       </view>
     </view>
-    <view wx:if="{{resumes.length === 0 && !loading}}" class="empty">暂无简历</view>
   </view>
 
   <view class="modal modal-show" wx:if="{{editFormVisible}}">
-    <view class="modal-content">
+    <view class="modal-content surface">
       <text class="modal-title">{{editId ? '编辑简历' : '新增简历'}}</text>
-      <input class="input" placeholder="标题" value="{{form.title}}" data-field="title" bindinput="onFormInput" />
-      <textarea class="textarea" placeholder="简介" value="{{form.summary}}" data-field="summary" bindinput="onFormInput"></textarea>
-      <picker value="{{form.status === 'published' ? 1 : form.status === 'archived' ? 2 : 0}}" range="{{statusOptions}}" bindchange="onStatusChange">
-        <view class="picker">状态：{{form.status}}</view>
-      </picker>
-      <view class="modal-actions">
-        <button class="cancel-btn" bindtap="closeForm">取消</button>
-        <button class="save-btn" bindtap="saveResume">保存</button>
+      <view class="form-stack">
+        <t-input label="标题" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入简历标题" value="{{form.title}}" data-field="title" bind:change="onFormInput" />
+        <t-textarea
+          label="简介"
+          bordered="{{true}}"
+          autosize="{{true}}"
+          indicator="{{true}}"
+          placeholder="请输入简历简介"
+          value="{{form.summary}}"
+          data-field="summary"
+          bind:change="onFormInput"
+        />
+        <view class="field-row">
+          <text class="field-label">状态</text>
+          <picker value="{{form.status === 'published' ? 1 : form.status === 'archived' ? 2 : 0}}" range="{{statusOptions}}" bindchange="onStatusChange">
+            <view class="picker">{{form.status}}</view>
+          </picker>
+        </view>
+        <view class="modal-actions t-mt-4">
+          <t-button variant="outline" shape="round" bind:tap="closeForm">取消</t-button>
+          <t-button theme="primary" shape="round" bind:tap="saveResume">保存</t-button>
+        </view>
       </view>
     </view>
   </view>
 </view>
+

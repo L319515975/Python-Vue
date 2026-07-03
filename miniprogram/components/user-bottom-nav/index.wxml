@@ -1,10 +1,10 @@
 <view class="user-bottom-nav">
   <view class="nav-item {{active === 'detail' ? 'nav-item-active' : ''}}" data-page="detail" bindtap="switchPage">
-    <text class="nav-title">Resume</text>
-    <text class="nav-sub">Overview</text>
+    <text class="nav-title">简历</text>
+    <text class="nav-sub">总览</text>
   </view>
   <view class="nav-item {{active === 'edit' ? 'nav-item-active' : ''}}" data-page="edit" bindtap="switchPage">
-    <text class="nav-title">Edit</text>
-    <text class="nav-sub">Manage</text>
+    <text class="nav-title">编辑</text>
+    <text class="nav-sub">维护</text>
   </view>
 </view>

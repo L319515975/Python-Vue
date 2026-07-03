@@ -1,11 +1,115 @@
-.admin-list-page { padding-bottom: 40rpx; }
-.page-head { display: flex; justify-content: space-between; align-items: center; gap: 20rpx; }
-.page-head .title { margin-bottom: 8rpx; }
-.page-head .add-btn { flex-shrink: 0; padding: 0 24rpx; font-size: 24rpx; }
-.compact-card { padding: 20rpx; }
-.search-bar .input { flex: 1; min-width: 0; }
-.search-btn { padding: 0 24rpx; font-size: 24rpx; }
-.item-desc { word-break: break-all; }
-.picker { margin: 16rpx 0; font-size: 26rpx; color: #344054; }
-.switch-row { display: flex; align-items: center; justify-content: space-between; margin: 14rpx 0; color: #344054; font-size: 26rpx; }
-.modal-actions button { min-width: 150rpx; }
+.admin-list-page {
+  padding-bottom: 40rpx;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+.page-head .title {
+  margin-bottom: 8rpx;
+}
+
+.search-shell {
+  padding: 20rpx;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.user-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.user-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  justify-content: flex-end;
+}
+
+.item-desc {
+  word-break: break-all;
+  margin-top: 8rpx;
+}
+
+.actions {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.modal-content {
+  max-width: 720rpx;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12rpx;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.picker {
+  margin: 0;
+  min-height: 96rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid var(--app-border);
+  background: var(--app-surface);
+  font-size: 26rpx;
+  color: var(--app-text);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding-top: 4rpx;
+}
+
+.switch-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--app-text-secondary);
+  line-height: 1.5;
+}
+
+@media (max-width: 768rpx) {
+  .page-head,
+  .user-head,
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-tags,
+  .actions,
+  .modal-actions {
+    justify-content: flex-start;
+  }
+}

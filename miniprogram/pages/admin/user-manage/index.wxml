@@ -1,48 +1,86 @@
 <view class="page admin-list-page">
-  <view class="card page-head">
+  <view class="card page-head surface">
     <view>
       <view class="title">用户管理</view>
       <view class="sub">管理登录账号、角色和启用状态。</view>
     </view>
-    <button class="add-btn" bindtap="openCreate">新增用户</button>
+    <t-button theme="primary" shape="round" icon="add" bind:tap="openCreate">新增用户</t-button>
   </view>
 
-  <view class="search-bar card compact-card">
-    <input class="input" placeholder="搜索用户名 / 邮箱 / 手机号" value="{{searchKey}}" bindinput="onSearchInput" />
-    <button class="search-btn" bindtap="loadUsers">搜索</button>
+  <view class="card search-shell surface">
+    <view class="search-bar">
+      <t-input
+        class="search-input"
+        borderless="{{true}}"
+        clearable="{{true}}"
+        clearTrigger="always"
+        prefixIcon="search"
+        placeholder="搜索用户名、邮箱、手机号"
+        value="{{searchKey}}"
+        bind:change="onSearchInput"
+      />
+      <t-button theme="primary" variant="outline" shape="round" icon="search" bind:tap="loadUsers">搜索</t-button>
+    </view>
   </view>
 
-  <view class="list">
-    <view class="list-item" wx:for="{{users}}" wx:for-item="item" wx:key="id">
-      <view class="item-info">
-        <text class="item-name">{{item.username}}</text>
-        <text class="item-desc">{{item.email || '-'}} · {{item.role_display || item.role}} · {{item.is_active ? '启用' : '停用'}}</text>
+  <view wx:if="{{loading}}" class="state-panel">
+    <t-loading loading="{{true}}" text="正在加载用户" />
+  </view>
+
+  <t-empty wx:elif="{{users.length === 0}}" description="暂无用户" />
+
+  <view wx:else class="list">
+    <view class="card user-card surface" wx:for="{{users}}" wx:for-item="item" wx:key="id">
+      <view class="user-head">
+        <view class="item-info">
+          <text class="item-name">{{item.username}}</text>
+          <text class="item-desc">{{item.email || '-'}} · {{item.phone || '-'}}</text>
+        </view>
+        <view class="user-tags">
+          <t-tag theme="primary" variant="light" size="small">{{item.role_display || item.role}}</t-tag>
+          <t-tag theme="{{item.is_active ? 'success' : 'danger'}}" variant="light" size="small">{{item.is_active ? '启用' : '停用'}}</t-tag>
+        </view>
       </view>
       <view class="actions">
-        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="openEdit">编辑</button>
-        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteUser">删除</button>
+        <t-button size="small" variant="outline" shape="round" icon="edit" data-id="{{item.id}}" bind:tap="openEdit">编辑</t-button>
+        <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-id="{{item.id}}" bind:tap="deleteUser">删除</t-button>
       </view>
     </view>
-    <view wx:if="{{users.length === 0 && !loading}}" class="empty">暂无用户</view>
   </view>
 
   <view class="modal modal-show" wx:if="{{formVisible}}">
-    <view class="modal-content">
+    <view class="modal-content surface">
       <text class="modal-title">{{editId ? '编辑用户' : '新增用户'}}</text>
-      <input class="input" placeholder="用户名" value="{{form.username}}" data-field="username" bindinput="onFormInput" />
-      <input class="input" placeholder="邮箱" value="{{form.email}}" data-field="email" bindinput="onFormInput" />
-      <input class="input" placeholder="手机号" value="{{form.phone}}" data-field="phone" bindinput="onFormInput" />
-      <picker value="{{form.role === 'admin' ? 1 : 0}}" range="{{roleOptions}}" bindchange="onRoleChange">
-        <view class="picker">角色：{{form.role}}</view>
-      </picker>
-      <input class="input" password placeholder="{{editId ? '不修改请留空' : '登录密码'}}" value="{{form.password}}" data-field="password" bindinput="onFormInput" />
-      <view class="switch-row">
-        <text>账号状态：{{form.is_active ? '启用' : '停用'}}</text>
-        <switch checked="{{form.is_active}}" bindchange="onActiveChange" />
-      </view>
-      <view class="modal-actions">
-        <button class="cancel-btn" bindtap="closeForm">取消</button>
-        <button class="save-btn" bindtap="saveUser">保存</button>
+      <view class="form-stack">
+        <t-input label="用户名" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入用户名" value="{{form.username}}" data-field="username" bind:change="onFormInput" />
+        <t-input label="邮箱" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入邮箱" value="{{form.email}}" data-field="email" bind:change="onFormInput" />
+        <t-input label="手机号" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入手机号" value="{{form.phone}}" data-field="phone" bind:change="onFormInput" />
+        <view class="field-row">
+          <text class="field-label">角色</text>
+          <picker value="{{form.role === 'admin' ? 1 : 0}}" range="{{roleOptions}}" bindchange="onRoleChange">
+            <view class="picker">{{form.role}}</view>
+          </picker>
+        </view>
+        <t-input
+          label="登录密码"
+          borderless="{{true}}"
+          type="password"
+          placeholder="{{editId ? '不修改请留空' : '请输入初始密码'}}"
+          value="{{form.password}}"
+          data-field="password"
+          bind:change="onFormInput"
+        />
+        <view class="switch-row">
+          <view>
+            <text class="switch-label">账号状态</text>
+            <view class="field-note">关闭后将禁止登录</view>
+          </view>
+          <t-switch value="{{form.is_active}}" bind:change="onActiveChange" />
+        </view>
+        <view class="modal-actions t-mt-4">
+          <t-button variant="outline" shape="round" bind:tap="closeForm">取消</t-button>
+          <t-button theme="primary" shape="round" bind:tap="saveUser">保存</t-button>
+        </view>
       </view>
     </view>
   </view>

@@ -1,36 +1,49 @@
 <view class="page admin-list-page">
-  <view class="card page-head">
+  <view class="card page-head surface">
     <view>
       <view class="title">标签管理</view>
-      <view class="sub">维护技能、项目、证书、奖项等标签。</view>
+      <view class="sub">维护技能、项目、证书等奖励标签。</view>
     </view>
-    <button class="add-btn" bindtap="showCreate">新增标签</button>
+    <t-button theme="primary" shape="round" icon="add" bind:tap="showCreate">新增标签</t-button>
   </view>
 
-  <view class="list">
-    <view class="list-item" wx:for="{{tags}}" wx:for-item="item" wx:key="id">
-      <view class="item-info">
-        <text class="item-name">{{item.name}}</text>
-        <text class="item-desc">{{item.tag_type || 'custom'}}</text>
+  <view wx:if="{{loading}}" class="state-panel">
+    <t-loading loading="{{true}}" text="正在加载标签" />
+  </view>
+
+  <t-empty wx:elif="{{tags.length === 0}}" description="暂无标签" />
+
+  <view wx:else class="list">
+    <view class="card tag-card surface" wx:for="{{tags}}" wx:for-item="item" wx:key="id">
+      <view class="tag-head">
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-desc">{{item.tag_type || 'custom'}}</text>
+        </view>
+        <t-tag theme="primary" variant="light" size="small">{{item.tag_type || 'custom'}}</t-tag>
       </view>
       <view class="actions">
-        <button class="edit-btn" size="mini" data-id="{{item.id}}" bindtap="editTag">编辑</button>
-        <button class="del-btn" size="mini" data-id="{{item.id}}" bindtap="deleteTag">删除</button>
+        <t-button size="small" variant="outline" shape="round" icon="edit" data-id="{{item.id}}" bind:tap="editTag">编辑</t-button>
+        <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-id="{{item.id}}" bind:tap="deleteTag">删除</t-button>
       </view>
     </view>
-    <view wx:if="{{tags.length === 0 && !loading}}" class="empty">暂无标签</view>
   </view>
 
   <view class="modal modal-show" wx:if="{{formVisible}}">
-    <view class="modal-content">
+    <view class="modal-content surface">
       <text class="modal-title">{{editId ? '编辑标签' : '新增标签'}}</text>
-      <input class="input" placeholder="标签名称" value="{{name}}" bindinput="onNameInput" />
-      <picker value="{{tagType}}" range="{{tagTypeOptions}}" bindchange="onTypeChange">
-        <view class="picker">类型：{{tagType}}</view>
-      </picker>
-      <view class="modal-actions">
-        <button class="cancel-btn" bindtap="hideForm">取消</button>
-        <button class="save-btn" bindtap="saveTag">保存</button>
+      <view class="form-stack">
+        <t-input label="标签名称" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入标签名称" value="{{name}}" bind:change="onNameInput" />
+        <view class="field-row">
+          <text class="field-label">类型</text>
+          <picker value="{{tagType}}" range="{{tagTypeOptions}}" bindchange="onTypeChange">
+            <view class="picker">{{tagType}}</view>
+          </picker>
+        </view>
+        <view class="modal-actions t-mt-4">
+          <t-button variant="outline" shape="round" bind:tap="hideForm">取消</t-button>
+          <t-button theme="primary" shape="round" bind:tap="saveTag">保存</t-button>
+        </view>
       </view>
     </view>
   </view>

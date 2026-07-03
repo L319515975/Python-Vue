@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "Edit Resume",
+  "navigationBarTitleText": "简历编辑",
   "usingComponents": {
     "user-bottom-nav": "../../../components/user-bottom-nav/index"
   }

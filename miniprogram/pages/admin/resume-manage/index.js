@@ -39,7 +39,7 @@ Page({
   async saveResume() {
     const form = this.data.form
     if (!form.title.trim()) {
-      wx.showToast({ title: 'Please enter a title', icon: 'none' })
+      wx.showToast({ title: '请输入标题', icon: 'none' })
       return
     }
     try {
