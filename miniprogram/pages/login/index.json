@@ -1,3 +1,11 @@
 {
-  "navigationBarTitleText": "登录"
+  "navigationBarTitleText": "\u767b\u5f55",
+  "navigationBarBackgroundColor": "#f6f9fb",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-input": "tdesign-miniprogram/input/input",
+    "t-skeleton": "tdesign-miniprogram/skeleton/skeleton",
+    "t-tag": "tdesign-miniprogram/tag/tag"
+  }
 }

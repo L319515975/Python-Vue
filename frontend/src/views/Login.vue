@@ -1,124 +1,74 @@
-﻿<!--
-  登录页面 Login.vue —— 用户输入用户名和密码登录系统。
-
-  作用：系统的入口页面，所有用户必须先登录才能使用系统功能。
-
-  功能：
-  1. 用户名/密码登录表单（带表单验证）
-  2. 装饰性浮动背景动画
-  3. 测试账号快捷填充（方便演示）
-  4. 登录后根据角色跳转到对应后台
-
-  知识点（Element Plus 表单）：
-  - el-form：表单容器，支持数据绑定和验证规则
-  - el-form-item：表单项，包含标签和验证提示
-  - el-input：输入框组件
-  - rules：验证规则对象，定义每个字段的验证条件
-  - formRef.validate()：手动触发表单验证
--->
 <template>
   <div class="login-page">
-    <!-- 背景装饰：三个浮动的半透明圆形 -->
-    <div class="login-bg">
-      <div class="bg-shape bg-shape-1"></div>
-      <div class="bg-shape bg-shape-2"></div>
-      <div class="bg-shape bg-shape-3"></div>
-    </div>
-
-    <!-- 登录卡片 -->
-    <div class="login-card">
-      <!-- 头部 Logo 和标题 -->
-      <div class="login-header">
-        <div class="logo-icon">
+    <div class="login-panel">
+      <section class="brand-panel">
+        <div class="brand-icon">
           <el-icon :size="28" color="#fff"><Document /></el-icon>
         </div>
-        <h2>智能简历管理系统</h2>
-        <p class="subtitle">AI驱动的个人简历管理平台</p>
-      </div>
+        <h1>智能简历管理系统</h1>
+        <p>面向企业后台的简历编辑、审核与分发工作台。</p>
+        <ul class="brand-points">
+          <li>统一的简历编辑与发布流程</li>
+          <li>AI 润色、访客链接、PDF 导出</li>
+          <li>管理员与个人中心分角色管理</li>
+        </ul>
+      </section>
 
-      <!-- 登录表单 -->
-      <!-- ref="formRef"：获取表单组件的引用（用于手动调用验证方法） -->
-      <!-- :rules="rules"：绑定验证规则 -->
-      <!-- @keyup.enter：按回车键时触发登录 -->
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="0"
-        size="large"
-        @keyup.enter="handleLogin"
-      >
-        <!-- 用户名输入框 -->
-        <el-form-item prop="username">
-          <el-input
-            v-model="form.username"
-            placeholder="请输入用户名"
-            prefix-icon="User"
-          />
-        </el-form-item>
+      <section class="form-panel">
+        <el-card shadow="never" class="login-card">
+          <div class="login-header">
+            <h2>登录</h2>
+            <p>请输入账号信息进入系统</p>
+          </div>
 
-        <!-- 密码输入框 -->
-        <!-- show-password：显示密码可见性切换按钮 -->
-        <el-form-item prop="password">
-          <el-input
-            v-model="form.password"
-            type="password"
-            placeholder="请输入密码"
-            prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
-
-        <!-- 登录按钮 -->
-        <el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            class="login-btn"
-            @click="handleLogin"
+          <el-form
+            ref="formRef"
+            :model="form"
+            :rules="rules"
+            label-width="0"
+            size="large"
+            @keyup.enter="handleLogin"
           >
-            登 录
-          </el-button>
-        </el-form-item>
-      </el-form>
+            <el-form-item prop="username">
+              <el-input v-model="form.username" placeholder="请输入用户名" prefix-icon="User" clearable />
+            </el-form-item>
 
-      <!-- 测试账号区域 -->
-      <div class="login-footer">
-        <el-divider>测试账号</el-divider>
-        <div class="demo-accounts">
-          <!-- 点击标签自动填充账号密码 -->
-          <el-tag
-            class="account-tag"
-            effect="plain"
-            @click="fillAccount('admin', 'admin123')"
-          >
-            管理员: admin / admin123
-          </el-tag>
-          <el-tag
-            class="account-tag"
-            type="success"
-            effect="plain"
-            @click="fillAccount('zhangsan', 'user123')"
-          >
-            用户: zhangsan / user123
-          </el-tag>
-        </div>
-      </div>
+            <el-form-item prop="password">
+              <el-input
+                v-model="form.password"
+                type="password"
+                placeholder="请输入密码"
+                prefix-icon="Lock"
+                show-password
+                clearable
+              />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">
+                登录
+              </el-button>
+            </el-form-item>
+          </el-form>
+
+          <div class="login-footer">
+            <el-divider>测试账号</el-divider>
+            <div class="demo-accounts">
+              <el-tag class="account-tag" effect="plain" @click="fillAccount('admin', 'admin123')">
+                管理员: admin / admin123
+              </el-tag>
+              <el-tag class="account-tag" type="success" effect="plain" @click="fillAccount('zhangsan', 'user123')">
+                用户: zhangsan / user123
+              </el-tag>
+            </div>
+          </div>
+        </el-card>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-/**
- * 登录页面的逻辑部分。
- *
- * 登录流程：
- * 1. 用户输入用户名和密码
- * 2. 点击登录按钮，触发表单验证
- * 3. 验证通过后，调用 userStore.login() 发送登录请求
- * 4. 后端验证成功后返回 JWT 令牌和用户信息
- * 5. 保存令牌和用户信息，跳转到对应角色的后台页面
- */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -126,45 +76,35 @@ import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
-const formRef = ref(null)    // 表单引用，用于调用验证方法
-const loading = ref(false)   // 登录按钮的加载状态
+const formRef = ref(null)
+const loading = ref(false)
 
-// 表单数据
 const form = ref({
   username: '',
   password: '',
 })
 
-// 表单验证规则
-// required: true → 必填项
-// message → 验证失败时的提示文字
-// trigger: 'blur' → 失去焦点时触发验证
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
-// 快捷填充测试账号
 function fillAccount(username, password) {
   form.value.username = username
   form.value.password = password
 }
 
-// 处理登录
 async function handleLogin() {
-  // 手动触发表单验证，validate() 返回 Promise
-  const valid = await formRef.value.validate().catch(() => false)
+  const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
   loading.value = true
   try {
-    // 调用用户状态管理中的登录方法
     await userStore.login(form.value.username, form.value.password)
     ElMessage.success('登录成功')
-    // 根据用户角色跳转到对应后台
     router.push(userStore.isAdmin ? '/admin' : '/user')
   } catch {
-    // 错误已由请求拦截器统一处理（显示错误消息）
+    // 错误由统一拦截器处理
   } finally {
     loading.value = false
   }
@@ -173,99 +113,93 @@ async function handleLogin() {
 
 <style scoped>
 .login-page {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(64, 158, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, #f5f7fa 0%, #eef2f7 100%);
 }
 
-/* 渐变背景 */
-.login-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.login-panel {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(360px, 460px);
+  gap: 24px;
+  align-items: stretch;
 }
 
-/* 装饰性浮动圆形 */
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.12;
-  background: #fff;
-}
-
-.bg-shape-1 {
-  width: 400px;
-  height: 400px;
-  top: -100px;
-  right: -80px;
-  animation: float 8s ease-in-out infinite;
-}
-
-.bg-shape-2 {
-  width: 250px;
-  height: 250px;
-  bottom: -60px;
-  left: -40px;
-  animation: float 10s ease-in-out infinite reverse;
-}
-
-.bg-shape-3 {
-  width: 150px;
-  height: 150px;
-  top: 40%;
-  left: 15%;
-  animation: float 6s ease-in-out infinite 1s;
-}
-
-/* 浮动动画 */
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
-}
-
-/* 登录卡片 */
-.login-card {
-  position: relative;
-  width: 420px;
-  max-width: 90vw;
+.brand-panel {
   padding: 40px;
-  background: rgba(255, 255, 255, 0.98);
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 520px;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.logo-icon {
+.brand-icon {
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  margin-bottom: 18px;
+}
+
+.brand-panel h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.brand-panel p {
+  margin: 14px 0 0;
+  max-width: 28rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+}
+
+.brand-points {
+  margin: 24px 0 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  display: grid;
+  gap: 10px;
+}
+
+.form-panel {
+  display: flex;
+  align-items: center;
+}
+
+.login-card {
+  width: 100%;
+  border: 1px solid #ebeef5;
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+}
+
+.login-header {
+  margin-bottom: 20px;
 }
 
 .login-header h2 {
-  margin: 0 0 6px;
-  color: #1a1a2e;
-  font-size: 22px;
-  font-weight: 700;
+  margin: 0;
+  font-size: 20px;
+  color: #333333;
 }
 
-.subtitle {
-  color: #909399;
+.login-header p {
+  margin: 6px 0 0;
   font-size: 14px;
-  margin: 0;
+  color: #666666;
 }
 
 .login-btn {
@@ -276,39 +210,43 @@ async function handleLogin() {
 }
 
 .login-footer {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .demo-accounts {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  align-items: center;
 }
 
 .account-tag {
   cursor: pointer;
+  width: fit-content;
   font-size: 13px;
-  transition: opacity 0.2s;
-}
-.account-tag:hover {
-  opacity: 0.8;
 }
 
-/* 移动端适配 */
+@media (max-width: 960px) {
+  .login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-panel {
+    min-height: auto;
+    padding: 28px;
+  }
+}
+
 @media (max-width: 768px) {
+  .login-page {
+    padding: 12px;
+  }
+
+  .brand-panel {
+    border-radius: 14px 14px 0 0;
+  }
+
   .login-card {
-    padding: 28px 24px;
-    margin: 16px;
-    border-radius: 12px;
+    border-radius: 0 0 14px 14px;
   }
-
-  .login-header h2 {
-    font-size: 18px;
-  }
-
-  .bg-shape-1 { width: 200px; height: 200px; }
-  .bg-shape-2 { width: 150px; height: 150px; }
-  .bg-shape-3 { display: none; }
 }
 </style>

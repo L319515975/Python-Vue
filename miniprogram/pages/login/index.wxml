@@ -1,28 +1,141 @@
 <view class="page login-page">
-  <view class="card login-card">
-    <view class="title">智能简历系统</view>
-    <view class="sub">小程序端登录</view>
-    <view class="form">
-      <input
-        class="input"
-        placeholder="请输入账号"
-        value="{{username}}"
-        maxlength="32"
-        bindinput="onUsernameInput"
-      />
-      <input
-        class="input"
-        placeholder="请输入密码"
-        password
-        value="{{password}}"
-        maxlength="32"
-        bindinput="onPasswordInput"
-      />
-      <button class="primary-btn" loading="{{loading}}" bindtap="handleLogin">登录</button>
-    </view>
-    <view class="demo">
-      <view class="demo-item" bindtap="fillAdmin">管理员：admin / admin123</view>
-      <view class="demo-item" bindtap="fillUser">普通用户：zhangsan / user123</view>
-    </view>
+  <view class="login-container">
+    <block wx:if="{{!ready}}">
+      <view class="login-skeleton">
+        <t-skeleton loading="{{true}}" animation="gradient" rowCol="{{skeletonRows}}" />
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="hero">
+        <view class="brand-mark">
+          <text class="brand-mark-text">SR</text>
+        </view>
+        <view class="hero-copy">
+          <view class="hero-title">智能简历系统</view>
+          <view class="hero-sub">统一管理员、求职者与访客入口，登录后自动进入对应工作台。</view>
+        </view>
+      </view>
+
+      <view class="feature-row">
+        <t-tag t-class="feature-tag" theme="primary" variant="light" shape="round" size="small">角色分流</t-tag>
+        <t-tag t-class="feature-tag" theme="primary" variant="light" shape="round" size="small">访客访问</t-tag>
+        <t-tag t-class="feature-tag" theme="primary" variant="light" shape="round" size="small">AI 辅助</t-tag>
+      </view>
+
+      <view class="login-card">
+        <view class="card-head">
+          <view>
+            <view class="section-title">登录</view>
+            <view class="section-sub">请输入账号和密码</view>
+          </view>
+          <view class="security-pill">安全入口</view>
+        </view>
+
+        <view class="form">
+          <view class="field">
+            <view class="field-label-row">
+              <text class="field-label">账号</text>
+              <text class="field-hint">管理员 / 普通用户</text>
+            </view>
+            <view class="field-shell {{usernameFocused ? 'is-focused' : ''}}">
+              <t-input
+                t-class="field-input"
+                borderless="{{true}}"
+                value="{{username}}"
+                placeholder="请输入账号"
+                placeholderClass="login-placeholder"
+                clearable="{{true}}"
+                clearTrigger="always"
+                adjustPosition="{{true}}"
+                confirmType="next"
+                maxlength="{{32}}"
+                bind:change="onUsernameChange"
+                bind:focus="onUsernameFocus"
+                bind:blur="onUsernameBlur"
+                bind:enter="focusPassword"
+                bind:clear="clearUsername"
+              />
+            </view>
+          </view>
+
+          <view class="field">
+            <view class="field-label-row">
+              <text class="field-label">密码</text>
+              <text class="field-hint">支持回车直接登录</text>
+            </view>
+            <view class="field-shell {{passwordFocused ? 'is-focused' : ''}}">
+              <t-input
+                t-class="field-input"
+                borderless="{{true}}"
+                type="{{showPassword ? 'text' : 'password'}}"
+                value="{{password}}"
+                placeholder="请输入密码"
+                placeholderClass="login-placeholder"
+                clearable="{{true}}"
+                clearTrigger="always"
+                adjustPosition="{{true}}"
+                confirmType="done"
+                maxlength="{{32}}"
+                suffix="{{passwordSuffix}}"
+                focus="{{passwordAutoFocus}}"
+                bind:change="onPasswordChange"
+                bind:focus="onPasswordFocus"
+                bind:blur="onPasswordBlur"
+                bind:enter="handleLogin"
+                bind:clear="clearPassword"
+                bind:tap="togglePasswordVisible"
+              />
+            </view>
+          </view>
+
+          <t-button
+            t-class="login-btn"
+            block="{{true}}"
+            theme="primary"
+            size="large"
+            shape="round"
+            loading="{{loading}}"
+            disabled="{{loading}}"
+            content="登录系统"
+            bind:tap="handleLogin"
+          />
+        </view>
+
+        <view class="quick-section">
+          <view class="quick-title">快捷填充</view>
+          <view class="quick-grid">
+            <view class="quick-item">
+              <t-button
+                t-class="quick-btn"
+                block="{{true}}"
+                theme="primary"
+                variant="outline"
+                size="medium"
+                shape="round"
+                content="管理员账号"
+                bind:tap="fillAdmin"
+              />
+              <view class="quick-desc">admin / admin123</view>
+            </view>
+            <view class="quick-item">
+              <t-button
+                t-class="quick-btn"
+                block="{{true}}"
+                theme="primary"
+                variant="outline"
+                size="medium"
+                shape="round"
+                content="普通用户"
+                bind:tap="fillUser"
+              />
+              <view class="quick-desc">zhangsan / user123</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="page-note">建议在 iPhone 全面屏和小尺寸设备上同时检查输入法遮挡与安全区。</view>
+    </block>
   </view>
 </view>
