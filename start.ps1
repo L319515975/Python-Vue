@@ -13,7 +13,7 @@ $frontendDir = "$projectRoot\frontend"
 # Check Python - search multiple locations
 Write-Host "[1/6] 检查 Python 环境..." -ForegroundColor Yellow
 $pythonCmd = $null
-$candidates = @("python", "python3", "py", "C:\Python312\python.exe", "C:\Python311\python.exe", "C:\Python310\python.exe")
+$candidates = @("python", "python3", "py", "C:\Python312\python.exe", "C:\Python311\python.exe", "C:\Python310\python.exe", "F:\python\python.exe")
 foreach ($cmd in $candidates) {
     try {
         $ver = & $cmd --version 2>&1
@@ -74,11 +74,19 @@ if (-not (Test-Path "$backendDir\.env")) {
 Write-Host "[5/6] 数据库迁移和初始化..." -ForegroundColor Yellow
 Push-Location $backendDir
 try {
-    & "$backendDir\venv\Scripts\python.exe" manage.py makemigrations users resumes ai_assistant 2>&1 | Out-Null
-    & "$backendDir\venv\Scripts\python.exe" manage.py migrate 2>&1 | Out-Null
-    & "$backendDir\venv\Scripts\python.exe" manage.py init_data 2>&1
-} catch {
+    & "$backendDir\venv\Scripts\python.exe" manage.py makemigrations users resumes ai_assistant
+    if ($LASTEXITCODE -ne 0) { throw "makemigrations 失败" }
+
+    & "$backendDir\venv\Scripts\python.exe" manage.py migrate
+    if ($LASTEXITCODE -ne 0) { throw "migrate 失败" }
+
+    & "$backendDir\venv\Scripts\python.exe" manage.py init_data
+    if ($LASTEXITCODE -ne 0) { throw "init_data 失败" }
+}
+catch {
     Write-Host "  数据库初始化失败: $_" -ForegroundColor Red
+    # 如果希望看到完整错误，可以在这里退出
+    # exit 1
 }
 Pop-Location
 

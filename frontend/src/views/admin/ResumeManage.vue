@@ -175,8 +175,7 @@ function handleSearch() {
 }
 
 function resetFilter() {
-  search.value = '
-'
+  search.value = ''
   filterStatus.value = ''
   currentPage.value = 1
   loadResumes()
