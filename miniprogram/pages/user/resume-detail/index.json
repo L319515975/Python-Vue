@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "我的简历"
+  "navigationBarTitleText": "Resume",
+  "usingComponents": {
+    "user-bottom-nav": "../../../components/user-bottom-nav/index"
+  }
 }

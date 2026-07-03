@@ -25,7 +25,7 @@
     <view class="modal-content">
       <text class="modal-title">{{editId ? '编辑标签' : '新增标签'}}</text>
       <input class="input" placeholder="标签名称" value="{{name}}" bindinput="onNameInput" />
-      <picker value="{{tagType}}" range="{{['skill','project','certificate','award','language','custom']}}" bindchange="onTypeChange">
+      <picker value="{{tagType}}" range="{{tagTypeOptions}}" bindchange="onTypeChange">
         <view class="picker">类型：{{tagType}}</view>
       </picker>
       <view class="modal-actions">

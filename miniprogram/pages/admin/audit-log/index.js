@@ -1,4 +1,4 @@
-﻿import { auditLogApi } from '../../../api/index'
+import { auditLogApi } from '../../../api/index'
 
 Page({
   data: { logs: [], loading: false, searchAction: '' },

@@ -1,4 +1,4 @@
-﻿import { hrAiUsageApi } from '../../../api/index'
+import { hrAiUsageApi } from '../../../api/index'
 
 Page({
   data: { logs: [], loading: false, searchUsername: '' },

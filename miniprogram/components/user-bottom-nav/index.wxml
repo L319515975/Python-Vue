@@ -1,0 +1,10 @@
+<view class="user-bottom-nav">
+  <view class="nav-item {{active === 'detail' ? 'nav-item-active' : ''}}" data-page="detail" bindtap="switchPage">
+    <text class="nav-title">Resume</text>
+    <text class="nav-sub">Overview</text>
+  </view>
+  <view class="nav-item {{active === 'edit' ? 'nav-item-active' : ''}}" data-page="edit" bindtap="switchPage">
+    <text class="nav-title">Edit</text>
+    <text class="nav-sub">Manage</text>
+  </view>
+</view>

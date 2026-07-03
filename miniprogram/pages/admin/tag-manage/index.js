@@ -1,9 +1,9 @@
-﻿import { tagApi } from '../../../api/index'
+import { tagApi } from '../../../api/index'
 
 const tagTypes = ['skill', 'project', 'certificate', 'award', 'language', 'custom']
 
 Page({
-  data: { tags: [], loading: false, formVisible: false, editId: null, name: '', tagType: 'skill' },
+  data: { tags: [], loading: false, formVisible: false, editId: null, name: '', tagType: 'skill', tagTypeOptions: tagTypes },
 
   onLoad() {
     this.loadTags()
@@ -15,7 +15,7 @@ Page({
       const res = await tagApi.list({ page_size: 200 })
       this.setData({ tags: Array.isArray(res) ? res : (res.results || []) })
     } catch (error) {
-      wx.showToast({ title: error.message || '加载失败', icon: 'none' })
+      wx.showToast({ title: error.message || '鍔犺浇澶辫触', icon: 'none' })
     } finally {
       this.setData({ loading: false })
     }
@@ -40,21 +40,21 @@ Page({
   async saveTag() {
     const name = (this.data.name || '').trim()
     if (!name) {
-      wx.showToast({ title: '请输入标签名称', icon: 'none' })
+      wx.showToast({ title: 'Please enter a tag name', icon: 'none' })
       return
     }
     try {
       if (this.data.editId) {
         await tagApi.update(this.data.editId, { name: name, tag_type: this.data.tagType })
-        wx.showToast({ title: '已更新', icon: 'success' })
+        wx.showToast({ title: 'Updated successfully', icon: 'success' })
       } else {
         await tagApi.create({ name: name, tag_type: this.data.tagType })
-        wx.showToast({ title: '已创建', icon: 'success' })
+        wx.showToast({ title: 'Created successfully', icon: 'success' })
       }
       this.hideForm()
       this.loadTags()
     } catch (error) {
-      wx.showToast({ title: error.message || '保存失败', icon: 'none' })
+      wx.showToast({ title: error.message || '淇濆瓨澶辫触', icon: 'none' })
     }
   },
 
@@ -75,16 +75,16 @@ Page({
     const id = e.currentTarget.dataset.id
     const that = this
     wx.showModal({
-      title: '确认删除',
-      content: '确定删除此标签吗？',
+      title: '纭鍒犻櫎',
+      content: 'Confirm delete this tag?',
       success: async function (result) {
         if (!result.confirm) return
         try {
           await tagApi.delete(id)
-          wx.showToast({ title: '已删除', icon: 'success' })
+          wx.showToast({ title: 'Deleted successfully', icon: 'success' })
           that.loadTags()
         } catch (error) {
-          wx.showToast({ title: error.message || '删除失败', icon: 'none' })
+          wx.showToast({ title: error.message || '鍒犻櫎澶辫触', icon: 'none' })
         }
       },
     })

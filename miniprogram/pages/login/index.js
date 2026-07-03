@@ -1,6 +1,27 @@
-﻿import { userApi } from '../../api/index'
 import userStore from '../../store/user'
-import { setAuth } from '../../utils/auth'
+
+function launchPage(url) {
+  return new Promise(function (resolve, reject) {
+    wx.reLaunch({
+      url: url,
+      success: resolve,
+      fail: reject,
+    })
+  })
+}
+
+async function navigateAfterLogin(primaryUrl, fallbackUrl) {
+  try {
+    await launchPage(primaryUrl)
+    return
+  } catch (primaryError) {
+    if (fallbackUrl) {
+      await launchPage(fallbackUrl)
+      return
+    }
+    throw primaryError
+  }
+}
 
 Page({
   data: { username: '', password: '', loading: false },
@@ -22,26 +43,32 @@ Page({
   },
 
   async handleLogin() {
-    if (!this.data.username || !this.data.password) {
-      wx.showToast({ title: '请输入账号密码', icon: 'none' })
+    const username = (this.data.username || '').trim()
+    const password = this.data.password || ''
+
+    if (!username || !password) {
+      wx.showToast({ title: '请输入账号和密码', icon: 'none' })
       return
     }
 
+    if (this.data.loading) return
+
     this.setData({ loading: true })
     try {
-      const data = await userApi.login({ username: this.data.username, password: this.data.password })
-      userStore.state.token = data.access
-      userStore.state.refreshToken = data.refresh
-      userStore.state.userInfo = data.user
-      setAuth({ access: data.access, refresh: data.refresh, user: data.user })
-      const target = data.user && data.user.role === 'admin'
+      const userInfo = await userStore.login(username, password)
+      const isAdmin = userInfo && userInfo.role === 'admin'
+      const primaryUrl = isAdmin
         ? '/pages/admin/dashboard/index'
         : '/pages/user/resume-detail/index'
-      wx.reLaunch({ url: target })
+      const fallbackUrl = isAdmin
+        ? '/pages/admin/user-manage/index'
+        : '/pages/user/resume-edit/index'
+
+      await navigateAfterLogin(primaryUrl, fallbackUrl)
     } catch (error) {
       wx.showToast({ title: error.message || '登录失败', icon: 'none' })
     } finally {
       this.setData({ loading: false })
     }
-  }
+  },
 })

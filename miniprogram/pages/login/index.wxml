@@ -1,15 +1,28 @@
-﻿<view class="page login-page">
+<view class="page login-page">
   <view class="card login-card">
     <view class="title">智能简历系统</view>
     <view class="sub">小程序端登录</view>
     <view class="form">
-      <input class="input" placeholder="用户名" value="{{username}}"  bindinput="onUsernameInput" /> 
-      <input class="input" placeholder="密码" password value="{{password}}" bindinput="onPasswordInput" />
+      <input
+        class="input"
+        placeholder="请输入账号"
+        value="{{username}}"
+        maxlength="32"
+        bindinput="onUsernameInput"
+      />
+      <input
+        class="input"
+        placeholder="请输入密码"
+        password
+        value="{{password}}"
+        maxlength="32"
+        bindinput="onPasswordInput"
+      />
       <button class="primary-btn" loading="{{loading}}" bindtap="handleLogin">登录</button>
     </view>
     <view class="demo">
       <view class="demo-item" bindtap="fillAdmin">管理员：admin / admin123</view>
-      <view class="demo-item" bindtap="fillUser">用户：zhangsan / user123</view>
+      <view class="demo-item" bindtap="fillUser">普通用户：zhangsan / user123</view>
     </view>
   </view>
 </view>

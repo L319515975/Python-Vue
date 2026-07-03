@@ -1,7 +1,7 @@
-﻿import { resumeApi } from '../../../api/index'
+import { resumeApi } from '../../../api/index'
 
 Page({
-  data: { resumes: [], searchKey: '', loading: false, filterStatus: '', editFormVisible: false, form: { title: '', summary: '', status: 'draft' }, editId: null },
+  data: { resumes: [], searchKey: '', loading: false, filterStatus: '', statusOptions: ['draft', 'published', 'archived'], editFormVisible: false, form: { title: '', summary: '', status: 'draft' }, editId: null },
 
   onLoad() {
     this.loadResumes()
@@ -39,22 +39,22 @@ Page({
   async saveResume() {
     const form = this.data.form
     if (!form.title.trim()) {
-      wx.showToast({ title: '请输入标题', icon: 'none' })
+      wx.showToast({ title: 'Please enter a title', icon: 'none' })
       return
     }
     try {
       const payload = { title: form.title.trim(), summary: form.summary.trim(), status: form.status }
       if (this.data.editId) {
         await resumeApi.update(this.data.editId, payload)
-        wx.showToast({ title: '已更新', icon: 'success' })
+        wx.showToast({ title: 'Updated successfully', icon: 'success' })
       } else {
         await resumeApi.create(payload)
-        wx.showToast({ title: '已创建', icon: 'success' })
+        wx.showToast({ title: 'Created successfully', icon: 'success' })
       }
       this.closeForm()
       this.loadResumes()
     } catch (error) {
-      wx.showToast({ title: error.message || '保存失败', icon: 'none' })
+      wx.showToast({ title: error.message || '淇濆瓨澶辫触', icon: 'none' })
     }
   },
 
@@ -67,7 +67,7 @@ Page({
       const res = await resumeApi.list(params)
       this.setData({ resumes: Array.isArray(res) ? res : (res.results || []) })
     } catch (error) {
-      wx.showToast({ title: error.message || '加载失败', icon: 'none' })
+      wx.showToast({ title: error.message || '鍔犺浇澶辫触', icon: 'none' })
     } finally {
       this.setData({ loading: false })
     }
@@ -82,16 +82,16 @@ Page({
     const id = e.currentTarget.dataset.id
     const that = this
     wx.showModal({
-      title: '确认删除',
-      content: '确定删除此简历吗？',
+      title: '纭鍒犻櫎',
+      content: 'Confirm delete this resume?',
       success: async function (result) {
         if (!result.confirm) return
         try {
           await resumeApi.delete(id)
-          wx.showToast({ title: '已删除', icon: 'success' })
+          wx.showToast({ title: 'Deleted successfully', icon: 'success' })
           that.loadResumes()
         } catch (error) {
-          wx.showToast({ title: error.message || '删除失败', icon: 'none' })
+          wx.showToast({ title: error.message || '鍒犻櫎澶辫触', icon: 'none' })
         }
       },
     })

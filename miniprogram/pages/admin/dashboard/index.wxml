@@ -1,4 +1,4 @@
-﻿<view class="page dashboard-page">
+<view class="page dashboard-page">
   <view class="card hero-card">
     <view class="hero-top">
       <view>
@@ -7,7 +7,7 @@
       </view>
       <view class="hero-badge">管理员</view>
     </view>
-    <view class="hero-tip">汇总核心数据、快速进入常用页面，并通过右下角 AI 悬浮按钮直接提问。</view>
+    <view class="hero-tip">查看核心数据、进入常用页面，并通过右下角 AI 悬浮按钮直接提问。</view>
   </view>
 
   <view class="stat-grid">
@@ -39,7 +39,7 @@
       <view class="menu-item" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
         <text class="menu-icon">简历</text>
         <text class="menu-title">简历管理</text>
-        <text class="menu-desc">查看、创建、编辑简历</text>
+        <text class="menu-desc">查看、创建和编辑简历</text>
       </view>
       <view class="menu-item" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
         <text class="menu-icon">标签</text>

@@ -32,7 +32,7 @@
       <input class="input" placeholder="用户名" value="{{form.username}}" data-field="username" bindinput="onFormInput" />
       <input class="input" placeholder="邮箱" value="{{form.email}}" data-field="email" bindinput="onFormInput" />
       <input class="input" placeholder="手机号" value="{{form.phone}}" data-field="phone" bindinput="onFormInput" />
-      <picker value="{{form.role === 'admin' ? 1 : 0}}" range="{{['user','admin']}}" bindchange="onRoleChange">
+      <picker value="{{form.role === 'admin' ? 1 : 0}}" range="{{roleOptions}}" bindchange="onRoleChange">
         <view class="picker">角色：{{form.role}}</view>
       </picker>
       <input class="input" password placeholder="{{editId ? '不修改请留空' : '登录密码'}}" value="{{form.password}}" data-field="password" bindinput="onFormInput" />

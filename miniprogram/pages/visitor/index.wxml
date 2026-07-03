@@ -1,4 +1,4 @@
-﻿<view class="page">
+<view class="page">
   <view wx:if="{{!resume}}" class="card">
     <view class="title">访客模式</view>
     <view class="sub">请输入分享链接中的 token 查看简历</view>

@@ -10,7 +10,7 @@
   max-width: 100%;
   position: relative;
   overflow: hidden;
-  padding: 36rpx;
+  padding: 40rpx 36rpx;
 }
 .login-card::before {
   content: '';
@@ -22,32 +22,41 @@
   background: linear-gradient(135deg, rgba(22, 119, 255, 0.08), rgba(109, 94, 252, 0.08));
   pointer-events: none;
 }
-.login-card .title, .login-card .sub, .form, .demo { position: relative; z-index: 1; }
-.form { margin-top: 28rpx; }
+.login-card .title,
+.login-card .sub,
+.form,
+.demo {
+  position: relative;
+  z-index: 1;
+}
+.form {
+  margin-top: 28rpx;
+}
 .input {
   margin-bottom: 18rpx;
-  height: 88rpx;
-  padding: 0 24rpx;
+  height: 96rpx;
+  padding: 0 28rpx;
   box-sizing: border-box;
-  font-size: 30rpx;
-  line-height: 88rpx;
-}
-.input::placeholder {
   font-size: 28rpx;
-  line-height: 88rpx;
+  line-height: 96rpx;
 }
 .primary-btn {
   width: 100%;
   margin-top: 8rpx;
-  height: 88rpx;
-  padding: 0 24rpx;
+  height: 96rpx;
+  padding: 0 28rpx;
   box-sizing: border-box;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
-  line-height: 88rpx;
+  line-height: 96rpx;
   text-align: center;
 }
-.demo { margin-top: 24rpx; display: flex; flex-direction: column; gap: 12rpx; }
+.demo {
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
 .demo-item {
   padding: 18rpx 20rpx;
   color: #175cd3;

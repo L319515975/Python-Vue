@@ -1,4 +1,4 @@
-﻿import { aiApi } from '../../../api/index'
+import { aiApi } from '../../../api/index'
 
 Page({
   data: { logs: [], loading: false, tab: 'chat' },

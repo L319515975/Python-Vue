@@ -1,4 +1,4 @@
-﻿import config from './config'
+import config from './config'
 import { getAccessToken, getRefreshToken, clearAuth, setAuth } from './auth'
 
 let refreshing = false
@@ -21,13 +21,13 @@ function serializeQuery(params = {}) {
 
 function normalizeError(res) {
   const body = res && res.data ? res.data : {}
-  const message = body.detail || body.message || '请求失败(' + (res ? res.statusCode : 'network') + ')'
+  const message = body.detail || body.message || 'Request failed(' + (res ? res.statusCode : 'network') + ')'
   return new Error(message)
 }
 
 function refreshToken() {
   const refresh = getRefreshToken()
-  if (!refresh) return Promise.reject(new Error('缺少刷新令牌'))
+  if (!refresh) return Promise.reject(new Error('Missing refresh token'))
 
   return new Promise(function (resolve, reject) {
     wx.request({
@@ -47,7 +47,7 @@ function refreshToken() {
       },
       fail: function (err) {
         if (err && /timeout/i.test(err.errMsg || '')) {
-          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          reject(new Error('Request timed out. Check backend and mini program domain config.'))
           return
         }
         reject(err)
@@ -105,7 +105,7 @@ function request(opts) {
   const params = opts.params || {}
   const header = opts.header || {}
   const skipAuth = opts.skipAuth || false
-  const responseType = opts.responseType || 'json'
+  const responseType = opts.responseType
   const timeout = opts.timeout || config.timeout || 15000
 
   return new Promise(function (resolve, reject) {
@@ -119,15 +119,14 @@ function request(opts) {
       if (token) finalHeader.Authorization = 'Bearer ' + token
     }
 
-    wx.request({
+    const requestOptions = {
       url: buildUrl(url) + serializeQuery(params),
       method: method,
       data: data,
       header: finalHeader,
-      responseType: responseType,
       timeout: timeout,
       success: function (res) {
-        if (responseType !== 'json') {
+        if (responseType === 'arraybuffer') {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(res)
             return
@@ -152,12 +151,18 @@ function request(opts) {
       },
       fail: function (err) {
         if (err && /timeout/i.test(err.errMsg || '')) {
-          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          reject(new Error('Request timed out. Check backend and mini program domain config.'))
           return
         }
         reject(err)
       },
-    })
+    }
+
+    if (responseType === 'arraybuffer') {
+      requestOptions.responseType = responseType
+    }
+
+    wx.request(requestOptions)
   })
 }
 
@@ -191,11 +196,11 @@ function uploadFile(url, filePath, name, formData) {
           }
           return
         }
-        reject(new Error('上传失败'))
+        reject(new Error('Upload failed'))
       },
       fail: function (err) {
         if (err && /timeout/i.test(err.errMsg || '')) {
-          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          reject(new Error('Request timed out. Check backend and mini program domain config.'))
           return
         }
         reject(err)
@@ -230,7 +235,7 @@ function download(url, options) {
       },
       fail: function (err) {
         if (err && /timeout/i.test(err.errMsg || '')) {
-          reject(new Error('请求超时，请确认后端已启动，且小程序基址配置正确'))
+          reject(new Error('Request timed out. Check backend and mini program domain config.'))
           return
         }
         reject(err)
@@ -250,4 +255,3 @@ export default {
   uploadFile: uploadFile,
   download: download,
 }
-

@@ -181,7 +181,6 @@ function syncOnce() {
     '',
   ].join('\n'))
 
-  console.log('[sync] Vue3 -> miniprogram 同步完成：' + new Date().toLocaleString())
 }
 
 function watchFrontend() {
@@ -192,18 +191,16 @@ function watchFrontend() {
       try {
         syncOnce()
       } catch (error) {
-        console.error('[sync] 同步失败：' + error.message)
+        void error
       }
     }, 300)
   }
 
   syncOnce()
-  console.log('[watch] 正在监听 frontend/src，按 Ctrl+C 停止。')
   fs.watch(frontendSrcDir, { recursive: true }, function (eventName, filename) {
     if (!filename) return
     const normalized = filename.replace(/\\/g, '/')
     if (normalized.includes('node_modules') || normalized.includes('/dist/')) return
-    console.log('[watch] 检测到 Vue3 变更：' + eventName + ' ' + normalized)
     rerun()
   })
 }
