@@ -18,17 +18,17 @@
 
   <view class="stat-grid">
     <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/user-manage/index">
-      <t-icon name="user" size="40rpx" />
+      <t-icon name="user" size="40rpx" class="quick-icon" />
       <text class="stat-num">{{stats.userCount}}</text>
       <text class="stat-label">用户</text>
     </view>
     <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
-      <t-icon name="file" size="40rpx" />
+      <t-icon name="file" size="40rpx" class="quick-icon" />
       <text class="stat-num">{{stats.resumeCount}}</text>
       <text class="stat-label">简历</text>
     </view>
     <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
-      <t-icon name="tag" size="40rpx" />
+      <t-icon name="tag" size="40rpx" class="quick-icon" />
       <text class="stat-num">{{stats.tagCount}}</text>
       <text class="stat-label">标签</text>
     </view>
