@@ -21,7 +21,7 @@ from .serializers import (
     PolishRequestSerializer, PolishResponseSerializer,
     PolishLogSerializer, ClassificationLogSerializer,
 )
-from .services import ask_ai, polish_text, classify_resume_file
+from .services import ask_ai, polish_text, classify_resume_file, resolve_chat_target
 from apps.users.permissions import IsAdminRole
 
 
@@ -97,7 +97,13 @@ class AIAssistantViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         query = serializer.validated_data['query']
-        result = ask_ai(request.user, query)
+        target_user = resolve_chat_target(
+            request.user,
+            query,
+            serializer.validated_data.get('target_user_id'),
+            serializer.validated_data.get('target_username', ''),
+        )
+        result = ask_ai(request.user, query, target_user=target_user)
 
         # 保存查询日志（异步场景下可以用Celery异步保存）
         QueryLog.objects.create(

@@ -1,7 +1,8 @@
-import { resumeApi } from '../../../api/index'
+import { resumeApi, pdfTemplateApi } from '../../../api/index'
+import { formatTemplateName, savePdfResponse } from '../../../utils/pdf'
 
 Page({
-  data: { resumes: [], searchKey: '', loading: false, filterStatus: '', statusOptions: ['draft', 'published', 'archived'], editFormVisible: false, form: { title: '', summary: '', status: 'draft' }, editId: null },
+  data: { resumes: [], searchKey: '', loading: false, filterStatus: '', statusOptions: ['draft', 'published', 'archived'], editFormVisible: false, form: { title: '', summary: '', status: 'draft' }, editId: null, downloadingPdf: false, pdfTemplates: [] },
 
   onLoad() {
     this.loadResumes()
@@ -70,6 +71,64 @@ Page({
       wx.showToast({ title: error.message || '鍔犺浇澶辫触', icon: 'none' })
     } finally {
       this.setData({ loading: false })
+    }
+  },
+
+  async loadPdfTemplates() {
+    if (this.data.pdfTemplates.length) return this.data.pdfTemplates
+
+    try {
+      const res = await pdfTemplateApi.list()
+      const templates = Array.isArray(res) ? res : (res.results || [])
+      const list = templates.length ? templates : [{ template_key: 'default', name: '默认模板', is_builtin: true }]
+      this.setData({ pdfTemplates: list })
+      return list
+    } catch (error) {
+      const fallback = [{ template_key: 'default', name: '默认模板', is_builtin: true }]
+      this.setData({ pdfTemplates: fallback })
+      return fallback
+    }
+  },
+
+  choosePdfTemplate(templates) {
+    const list = (templates || []).slice(0, 6)
+    const items = list.map(function (item) {
+      return formatTemplateName(item)
+    })
+
+    return new Promise(function (resolve, reject) {
+      wx.showActionSheet({
+        itemList: items,
+        success: function (result) {
+          resolve(list[result.tapIndex])
+        },
+        fail: function (error) {
+          reject(error)
+        },
+      })
+    })
+  },
+
+  async downloadResume(e) {
+    const id = e.currentTarget.dataset.id
+    const item = this.data.resumes.find(function (resume) { return String(resume.id) === String(id) })
+    if (!item || this.data.downloadingPdf) return
+
+    this.setData({ downloadingPdf: true })
+    try {
+      const templates = await this.loadPdfTemplates()
+      const template = await this.choosePdfTemplate(templates)
+      if (!template) return
+
+      const modules = item.enabled_modules && item.enabled_modules.length ? item.enabled_modules : []
+      const response = await resumeApi.exportPdf(item.id, modules, template.template_key)
+      const filePath = savePdfResponse(response, item.title || item.username || 'resume', template.name)
+      wx.openDocument({ filePath: filePath, fileType: 'pdf' })
+    } catch (error) {
+      if (error && error.errMsg && error.errMsg.indexOf('cancel') >= 0) return
+      wx.showToast({ title: error.message || '下载失败', icon: 'none' })
+    } finally {
+      this.setData({ downloadingPdf: false })
     }
   },
 

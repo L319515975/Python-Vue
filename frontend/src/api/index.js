@@ -67,9 +67,21 @@ export const resumeApi = {
   // 设置简历标签
   setTags: (id, tagIds) => request.post(`/resumes/${id}/set-tags/`, { tag_ids: tagIds }),
   // 导出简历为 PDF（responseType: 'blob' 表示返回二进制文件）
-  exportPdf: (id, modules) => request.post(`/resumes/${id}/export-pdf/`, { modules }, {
+  exportPdf: (id, modules, templateKey = 'default') => request.post(`/resumes/${id}/export-pdf/`, {
+    modules,
+    template_key: templateKey,
+  }, {
     responseType: 'blob',
   }),
+  // 简历 PDF 模板管理
+  pdfTemplates: (params) => request.get('/resumes/pdf-templates/', { params }),
+  createPdfTemplate: (formData) => request.post('/resumes/pdf-templates/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  updatePdfTemplate: (id, formData) => request.patch(`/resumes/pdf-templates/${id}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  deletePdfTemplate: (id) => request.delete(`/resumes/pdf-templates/${id}/`),
   // 访客链接管理
   generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),  // 生成访客链接
   disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),                 // 禁用访客链接

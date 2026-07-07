@@ -1,4 +1,5 @@
-import { resumeApi, tagApi, aiApi } from '../../../api/index'
+import { resumeApi, tagApi, aiApi, pdfTemplateApi } from '../../../api/index'
+import { formatTemplateName, savePdfResponse } from '../../../utils/pdf'
 
 const moduleLabelMap = {
   education: '教育经历',
@@ -75,6 +76,8 @@ Page({
     aiQuestion: '',
     aiSubmitting: false,
     aiAnswer: '',
+    downloadingPdf: false,
+    pdfTemplates: [],
   },
 
   onLoad(options) {
@@ -418,25 +421,60 @@ Page({
     })
   },
 
-  async exportPdf() {
-    if (!this.data.resume) return
+  async loadPdfTemplates() {
+    if (this.data.pdfTemplates.length) return this.data.pdfTemplates
 
     try {
+      const res = await pdfTemplateApi.list()
+      const templates = Array.isArray(res) ? res : (res.results || [])
+      const list = templates.length ? templates : [{ template_key: 'default', name: '默认模板', is_builtin: true }]
+      this.setData({ pdfTemplates: list })
+      return list
+    } catch (error) {
+      const fallback = [{ template_key: 'default', name: '默认模板', is_builtin: true }]
+      this.setData({ pdfTemplates: fallback })
+      return fallback
+    }
+  },
+
+  choosePdfTemplate(templates) {
+    const list = (templates || []).slice(0, 6)
+    const items = list.map(function (item) {
+      return formatTemplateName(item)
+    })
+
+    return new Promise(function (resolve, reject) {
+      wx.showActionSheet({
+        itemList: items,
+        success: function (result) {
+          resolve(list[result.tapIndex])
+        },
+        fail: function (error) {
+          reject(error)
+        },
+      })
+    })
+  },
+
+  async exportPdf() {
+    if (!this.data.resume) return
+    if (this.data.downloadingPdf) return
+
+    this.setData({ downloadingPdf: true })
+    try {
+      const templates = await this.loadPdfTemplates()
+      const template = await this.choosePdfTemplate(templates)
+      if (!template) return
+
       const modules = this.data.exportModuleNames.length ? this.data.exportModuleNames : this.data.resume.enabled_modules
-      const response = await resumeApi.exportPdf(this.data.resume.id, modules)
-      const filePath = wx.env.USER_DATA_PATH + '/resume.pdf'
-      const fileContent = response && response.data ? response.data : response
-      const fileSystem = wx.getFileSystemManager()
-
-      if (fileContent instanceof ArrayBuffer) {
-        fileSystem.writeFileSync(filePath, fileContent)
-      } else {
-        fileSystem.writeFileSync(filePath, fileContent, 'binary')
-      }
-
+      const response = await resumeApi.exportPdf(this.data.resume.id, modules, template.template_key)
+      const filePath = savePdfResponse(response, this.data.resume.title || 'resume', template.name)
       wx.openDocument({ filePath: filePath, fileType: 'pdf' })
     } catch (error) {
+      if (error && error.errMsg && error.errMsg.indexOf('cancel') >= 0) return
       wx.showToast({ title: error && error.message ? error.message : '导出失败', icon: 'none' })
+    } finally {
+      this.setData({ downloadingPdf: false })
     }
   },
 })

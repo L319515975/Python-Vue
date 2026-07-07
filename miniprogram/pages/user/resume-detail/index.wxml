@@ -108,7 +108,7 @@
     </view>
 
     <view class="card surface action-card">
-      <t-button block="{{true}}" theme="primary" shape="round" bind:tap="exportPdf">导出 PDF</t-button>
+      <t-button block="{{true}}" theme="primary" shape="round" bind:tap="exportPdf">下载 PDF</t-button>
       <t-button class="t-mt-3" block="{{true}}" variant="outline" shape="round" bind:tap="refresh">刷新</t-button>
     </view>
 

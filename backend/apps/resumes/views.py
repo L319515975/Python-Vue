@@ -25,16 +25,18 @@ from rest_framework.permissions import IsAuthenticated, AllowAny  # 权限类
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser  # 文件解析器
 from django.http import FileResponse, JsonResponse  # Django 响应：文件下载、JSON
 from django.utils import timezone            # Django 时区工具，获取当前时间
+from django.utils.text import get_valid_filename
 
 # 从本应用的 models.py 导入所有数据模型
-from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog
+from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog, ResumePdfTemplate
 # 从本应用的 serializers.py 导入所有序列化器
 from .serializers import (
     ResumeListSerializer, ResumeDetailSerializer, ResumeCreateUpdateSerializer,
     EducationSerializer, WorkExperienceSerializer, ProjectSerializer, SkillSerializer,
-    TagSerializer, TagCreateSerializer, PdfExportSerializer,
+    TagSerializer, TagCreateSerializer, PdfExportSerializer, ResumePdfTemplateSerializer,
     VisitorLinkSerializer, VisitorLinkUpdateSerializer,
 )
+from .pdf_templates import list_pdf_templates
 # 从访客工具模块导入安全和数据过滤函数
 from .visitor_utils import (
     verify_visitor_signature, is_visitor_link_valid, get_visitor_url,
@@ -89,6 +91,11 @@ def _get_client_ip(request):
     """
     xff = request.META.get('HTTP_X_FORWARDED_FOR')
     return xff.split(',')[0].strip() if xff else request.META.get('REMOTE_ADDR')
+
+
+def _build_pdf_filename(resume):
+    base = resume.title or resume.user.username or 'resume'
+    return f'{get_valid_filename(base)}.pdf'
 
 
 # ========== 公开的访客 API（无需登录） ==========
@@ -183,7 +190,7 @@ def visitor_download_pdf(request, token):
         public_modules = resume.get_public_modules()
         # 生成 PDF 文件（返回内存中的字节流）
         pdf_buffer = generate_resume_pdf(resume, public_modules)
-        filename = f'{resume.user.username}_resume.pdf'
+        filename = _build_pdf_filename(resume)
         # FileResponse 会自动处理文件流的传输
         return FileResponse(
             pdf_buffer,
@@ -540,12 +547,13 @@ class ResumeViewSet(viewsets.ModelViewSet):
         resume = self.get_object()
         serializer = PdfExportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        selected_modules = serializer.validated_data['modules']
+        selected_modules = serializer.validated_data['modules'] or resume.enabled_modules or list(Resume.CONFIGURABLE_MODULES)
+        template_key = serializer.validated_data.get('template_key') or 'default'
 
         try:
             from .pdf_service import generate_resume_pdf
-            pdf_buffer = generate_resume_pdf(resume, selected_modules)
-            filename = f'{resume.user.username}_resume.pdf'
+            pdf_buffer = generate_resume_pdf(resume, selected_modules, template_key=template_key)
+            filename = _build_pdf_filename(resume)
             return FileResponse(
                 pdf_buffer, as_attachment=True, filename=filename,
                 content_type='application/pdf',
@@ -705,3 +713,25 @@ class SkillViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         return [IsAuthenticated()]
+
+
+class ResumePdfTemplateViewSet(viewsets.ModelViewSet):
+    """简历 PDF 模板管理。"""
+
+    queryset = ResumePdfTemplate.objects.all()
+    serializer_class = ResumePdfTemplateSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return ResumePdfTemplate.objects.none()
+        return ResumePdfTemplate.objects.all().order_by('-is_active', 'name')
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [IsAuthenticated()]
+        return [IsAdminRole()]
+
+    def list(self, request, *args, **kwargs):
+        include_inactive = request.query_params.get('include_inactive') in ('1', 'true', 'yes')
+        return Response(list_pdf_templates(include_inactive=include_inactive))

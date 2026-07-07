@@ -1,4 +1,4 @@
-﻿"""访客链接工具模块 - 处理HMAC签名生成和验证。
+"""访客链接工具模块 - 处理HMAC签名生成和验证。
 
 本模块的核心功能是确保访客链接的安全性。
 
@@ -116,8 +116,6 @@ def get_visitor_url(resume, request=None) -> str:
     返回：
         完整的访客URL字符串
     """
-    from datetime import datetime
-
     if not resume.visitor_token:
         return ''
 
@@ -130,12 +128,13 @@ def get_visitor_url(resume, request=None) -> str:
     role = 'ai' if resume.visitor_ai_mode_enabled else 'visitor'
     sig = generate_visitor_signature(resume.visitor_token, expires_ts, role)
 
-    # 构建基础URL
-    base_url = ''
-    if request:
+    # 构建基础URL：优先使用前端地址，避免分享链接指向后端端口
+    base_url = getattr(settings, 'FRONTEND_URL', '') or ''
+    if not base_url and request:
         base_url = f'{request.scheme}://{request.get_host()}'
 
-    url = f'{base_url}/visitor/{resume.visitor_token}'
+    base_url = base_url.rstrip('/')
+    url = f'{base_url}/visitor/{resume.visitor_token}' if base_url else f'/visitor/{resume.visitor_token}'
 
     # 构建查询参数
     params = []
@@ -144,7 +143,7 @@ def get_visitor_url(resume, request=None) -> str:
     params.append(f'sig={sig}')
 
     if resume.visitor_ai_mode_enabled:
-        params.append(f'role=ai')
+        params.append('role=ai')
         params.append(f'quota={resume.visitor_ai_quota}')
 
     url += '?' + '&'.join(params)
@@ -169,6 +168,7 @@ def check_visitor_ai_quota(resume) -> dict:
         return {'available': False, 'remaining': 0, 'total': resume.visitor_ai_quota, 'reason': 'AI调用配额已用尽'}
 
     return {'available': True, 'remaining': remaining, 'total': resume.visitor_ai_quota}
+
 
 
 def filter_visitor_data(resume) -> dict:

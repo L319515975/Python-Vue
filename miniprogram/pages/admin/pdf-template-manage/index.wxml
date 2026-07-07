@@ -1,0 +1,80 @@
+<view class="page admin-list-page">
+  <view class="card page-head surface">
+    <view>
+      <view class="title">PDF 模板管理</view>
+      <view class="sub">上传、启用、停用和删除简历 PDF 模板。</view>
+    </view>
+    <t-button theme="primary" shape="round" icon="add" bind:tap="openCreate">上传模板</t-button>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-panel">
+    <t-loading loading="{{true}}" text="正在加载模板" />
+  </view>
+
+  <t-empty wx:elif="{{templates.length === 0}}" description="暂无模板" />
+
+  <view wx:else class="list">
+    <view class="card template-card surface" wx:for="{{templates}}" wx:for-item="item" wx:key="id">
+      <view class="template-head">
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-desc">{{item.description || '暂无描述'}}</text>
+        </view>
+        <view class="template-tags">
+          <t-tag theme="{{item.is_builtin ? 'success' : 'primary'}}" variant="light" size="small">{{item.is_builtin ? '内置' : '自定义'}}</t-tag>
+          <t-tag theme="{{item.is_active ? 'success' : 'danger'}}" variant="light" size="small">{{item.is_active ? '启用' : '停用'}}</t-tag>
+        </view>
+      </view>
+
+      <view class="template-meta">文件：{{item.template_file_name || '-'}}</view>
+
+      <view class="switch-row" wx:if="{{!item.is_builtin}}">
+        <view>
+          <text class="switch-label">启用状态</text>
+          <view class="field-note">停用后不会出现在下载选项中</view>
+        </view>
+        <t-switch value="{{item.is_active}}" data-id="{{item.id}}" bind:change="toggleActive" />
+      </view>
+
+      <view class="actions">
+        <t-button wx:if="{{!item.is_builtin}}" size="small" variant="outline" shape="round" icon="edit" data-id="{{item.id}}" bind:tap="openEdit">编辑</t-button>
+        <t-button wx:if="{{!item.is_builtin}}" size="small" theme="danger" variant="outline" shape="round" icon="delete" data-id="{{item.id}}" bind:tap="deleteTemplate">删除</t-button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal modal-show" wx:if="{{formVisible}}">
+    <view class="modal-content surface">
+      <text class="modal-title">{{editId ? '编辑模板' : '上传模板'}}</text>
+      <view class="form-stack">
+        <t-input label="模板名称" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入模板名称" value="{{form.name}}" data-field="name" bind:change="onFormInput" />
+        <t-textarea
+          label="模板描述"
+          bordered="{{true}}"
+          autosize="{{true}}"
+          indicator="{{true}}"
+          placeholder="请输入模板描述"
+          value="{{form.description}}"
+          data-field="description"
+          bind:change="onFormInput"
+        />
+        <view class="switch-row">
+          <view>
+            <text class="switch-label">启用状态</text>
+            <view class="field-note">启用后可在下载时选择</view>
+          </view>
+          <t-switch value="{{form.is_active}}" bind:change="onActiveChange" />
+        </view>
+        <view class="field-row" wx:if="{{!editId}}">
+          <text class="field-label">模板文件</text>
+          <t-button variant="outline" shape="round" icon="upload" bind:tap="chooseTemplateFile">选择 HTML 文件</t-button>
+          <text class="file-name">{{fileName || '未选择文件'}}</text>
+        </view>
+        <view class="modal-actions t-mt-4">
+          <t-button variant="outline" shape="round" bind:tap="closeForm">取消</t-button>
+          <t-button theme="primary" shape="round" loading="{{saving}}" disabled="{{saving}}" bind:tap="saveTemplate">保存</t-button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

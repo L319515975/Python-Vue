@@ -35,9 +35,25 @@ class ChatRequestSerializer(serializers.Serializer):
     """
     AI 对话请求序列化器 —— 验证用户发来的对话请求。
 
-    请求格式：{ "query": "我的项目经历有哪些？" }
+    请求格式：{ "query": "我的项目经历有哪些？", "target_user_id": 12 }
     """
     query = serializers.CharField(max_length=2000, help_text='用户查询内容')
+    target_user_id = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        help_text='目标用户ID，仅管理员可指定',
+    )
+    target_username = serializers.CharField(
+        required=False,
+        allow_blank=False,
+        max_length=150,
+        help_text='目标用户名，仅管理员可指定',
+    )
+
+    def validate(self, attrs):
+        if attrs.get('target_user_id') and attrs.get('target_username'):
+            raise serializers.ValidationError('target_user_id 和 target_username 只能提供一个')
+        return attrs
 
 
 class ChatResponseSerializer(serializers.Serializer):

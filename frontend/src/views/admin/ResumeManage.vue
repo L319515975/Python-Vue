@@ -7,7 +7,12 @@
             <h2>简历管理</h2>
             <p>支持搜索、筛选和详情查看。</p>
           </div>
-          <el-tag type="info" effect="plain">列表视图</el-tag>
+          <div class="header-actions">
+            <el-select v-model="selectedTemplateKey" class="template-select" placeholder="PDF模板">
+              <el-option v-for="item in templateOptions" :key="item.template_key" :label="item.name" :value="item.template_key" />
+            </el-select>
+            <el-tag type="info" effect="plain">列表视图</el-tag>
+          </div>
         </div>
       </template>
 
@@ -61,9 +66,10 @@
           </el-table-column>
           <el-table-column prop="file_name" label="文件" min-width="140" show-overflow-tooltip />
           <el-table-column prop="updated_at" label="更新时间" width="180" />
-          <el-table-column label="操作" width="100" fixed="right">
+          <el-table-column label="操作" width="170" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link icon="View" @click="viewDetail(row)">查看</el-button>
+              <el-button type="primary" link icon="Download" :loading="downloadingId === row.id" @click="downloadResume(row)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -137,6 +143,8 @@
 import { ref, onMounted } from 'vue'
 import { useMobile } from '@/composables/useMobile'
 import { resumeApi } from '@/api'
+import { ElMessage } from 'element-plus'
+import { downloadBlob } from '@/utils/download'
 
 const { isMobile } = useMobile()
 
@@ -151,6 +159,24 @@ const filterStatus = ref('')
 const drawerVisible = ref(false)
 const currentResume = ref(null)
 const detailData = ref({})
+const templateOptions = ref([
+  { template_key: 'default', name: '经典简历' },
+  { template_key: 'modern', name: '现代简历' },
+])
+const selectedTemplateKey = ref('default')
+const downloadingId = ref(null)
+
+async function loadTemplates() {
+  try {
+    const data = await resumeApi.pdfTemplates()
+    templateOptions.value = data.length ? data : templateOptions.value
+    if (!templateOptions.value.some(item => item.template_key === selectedTemplateKey.value)) {
+      selectedTemplateKey.value = templateOptions.value[0]?.template_key || 'default'
+    }
+  } catch {
+    // 保留内置模板
+  }
+}
 
 async function loadResumes() {
   loading.value = true
@@ -199,7 +225,31 @@ async function viewDetail(row) {
   }
 }
 
-onMounted(loadResumes)
+function buildPdfFilename(row) {
+  const raw = `${row.username || 'resume'}_${row.title || 'pdf'}`
+  return raw.replace(/[\\/:*?"<>|]/g, '_') + '.pdf'
+}
+
+async function downloadResume(row) {
+  downloadingId.value = row.id
+  try {
+    const modules = row.enabled_modules?.length
+      ? row.enabled_modules
+      : ['education', 'work_experience', 'project', 'skill']
+    const blob = await resumeApi.exportPdf(row.id, modules, selectedTemplateKey.value)
+    downloadBlob(blob, buildPdfFilename(row))
+    ElMessage.success('PDF 下载成功')
+  } catch {
+    ElMessage.error('PDF 下载失败')
+  } finally {
+    downloadingId.value = null
+  }
+}
+
+onMounted(async () => {
+  await loadTemplates()
+  await loadResumes()
+})
 </script>
 
 <style scoped>
@@ -216,6 +266,16 @@ onMounted(loadResumes)
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.template-select {
+  width: 160px;
 }
 
 .page-header h2 {

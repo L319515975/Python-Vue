@@ -58,6 +58,30 @@ class Tag(models.Model):
         return f'{self.name} ({self.get_tag_type_display()})'
 
 
+class ResumePdfTemplate(models.Model):
+    """简历 PDF 模板。"""
+
+    name = models.CharField(max_length=120, verbose_name='模板名称')
+    description = models.CharField(max_length=255, blank=True, default='', verbose_name='模板描述')
+    template_file = models.FileField(upload_to='resume_templates/', verbose_name='模板文件')
+    is_active = models.BooleanField(default=True, verbose_name='启用状态')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        verbose_name = '简历模板'
+        verbose_name_plural = '简历模板'
+        ordering = ['-is_active', 'name']
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        if self.template_file:
+            self.template_file.delete(save=False)
+        return super().delete(*args, **kwargs)
+
+
 class Resume(models.Model):
     """简历主模型 - 存储简历的所有信息。
 

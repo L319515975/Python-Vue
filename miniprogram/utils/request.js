@@ -126,6 +126,13 @@ function request(opts) {
       header: finalHeader,
       timeout: timeout,
       success: function (res) {
+        if (res.statusCode === 401 && !skipAuth) {
+          handle401(function () {
+            return request(opts)
+          }).then(resolve).catch(reject)
+          return
+        }
+
         if (responseType === 'arraybuffer') {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(res)
@@ -137,13 +144,6 @@ function request(opts) {
 
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data)
-          return
-        }
-
-        if (res.statusCode === 401 && !skipAuth) {
-          handle401(function () {
-            return request(opts)
-          }).then(resolve).catch(reject)
           return
         }
 
@@ -194,6 +194,12 @@ function uploadFile(url, filePath, name, formData) {
           } catch (error) {
             resolve(res.data)
           }
+          return
+        }
+        if (res.statusCode === 401) {
+          handle401(function () {
+            return uploadFile(url, filePath, name, formData)
+          }).then(resolve).catch(reject)
           return
         }
         reject(new Error('Upload failed'))

@@ -9,7 +9,7 @@ Django Admin是Django自带的后台管理界面，访问 /admin/ 即可进入�
 - fieldsets: 编辑页的字段分组
 """
 from django.contrib import admin
-from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog
+from .models import Resume, Education, WorkExperience, Project, Skill, Tag, AdminAuditLog, VisitorAiUsageLog, ResumePdfTemplate
 
 
 @admin.register(Tag)
@@ -18,6 +18,13 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ['name', 'tag_type', 'is_system', 'created_at']
     list_filter = ['tag_type', 'is_system']
     search_fields = ['name']
+
+
+@admin.register(ResumePdfTemplate)
+class ResumePdfTemplateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_active', 'created_at', 'updated_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
 
 
 @admin.register(Resume)

@@ -35,11 +35,24 @@ export const resumeApi = {
     request.uploadFile(`/resumes/${id}/upload_file/`, filePath, name, formData),
   updateModules: (id, data) => request.post(`/resumes/${id}/update-modules/`, data),
   setTags: (id, tagIds) => request.post(`/resumes/${id}/set-tags/`, { tag_ids: tagIds }),
-  exportPdf: (id, modules) =>
-    request.post(`/resumes/${id}/export-pdf/`, { modules }, { responseType: 'arraybuffer' }),
+  exportPdf: (id, modules, templateKey) =>
+    request.post(
+      `/resumes/${id}/export-pdf/`,
+      { modules, template_key: templateKey },
+      { responseType: 'arraybuffer' },
+    ),
   generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),
   disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),
   visitorLinkInfo: (id) => request.get(`/resumes/${id}/visitor-link-info/`),
+}
+
+export const pdfTemplateApi = {
+  list: (params) => request.get('/resumes/pdf-templates/', params || {}),
+  listAll: () => request.get('/resumes/pdf-templates/', { include_inactive: 1 }),
+  create: (filePath, formData) =>
+    request.uploadFile('/resumes/pdf-templates/', filePath, 'template_file', formData || {}),
+  update: (id, data) => request.patch(`/resumes/pdf-templates/${id}/`, data),
+  delete: (id) => request.delete(`/resumes/pdf-templates/${id}/`),
 }
 
 export const visitorApi = {

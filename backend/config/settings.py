@@ -199,3 +199,7 @@ RESUME_UPLOAD_PATH = 'resumes/'  # 简历文件存储路径（相对于MEDIA_ROO
 # ── 访客链接安全配置 ──────────────────────────────────────
 VISITOR_LINK_SECRET = os.getenv('VISITOR_LINK_SECRET', SECRET_KEY + '-visitor')
 VISITOR_LINK_DEFAULT_EXPIRY_DAYS = 30  # 默认30天有效期
+
+# 访客页面前端地址 - 用于生成可直接打开的分享链接
+# 开发环境默认指向 Vite 的端口；生产环境请通过环境变量覆盖
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')

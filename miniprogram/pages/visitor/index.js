@@ -21,7 +21,7 @@ Page({
     token: '',
     sig: '',
     expires: '',
-    role: 'hr',
+    role: 'visitor',
     resume: null,
     sections: [],
     loading: false,
@@ -40,7 +40,7 @@ Page({
       token: options.token || '',
       sig: options.sig || '',
       expires: options.expires || '',
-      role: options.role || 'hr',
+      role: options.role || 'visitor',
     }
     this.setData(data)
     if (data.token) this.loadResume()

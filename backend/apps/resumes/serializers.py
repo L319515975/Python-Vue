@@ -16,7 +16,8 @@
 - PrimaryKeyRelatedField：以外键 ID 的形式表示关联对象
 """
 from rest_framework import serializers
-from .models import Resume, Education, WorkExperience, Project, Skill, Tag
+from .models import Resume, Education, WorkExperience, Project, Skill, Tag, ResumePdfTemplate
+from .pdf_templates import validate_pdf_template_key
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -57,6 +58,44 @@ class TagCreateSerializer(serializers.ModelSerializer):
         """
         validated_data['is_system'] = True
         return super().create(validated_data)
+
+
+class ResumePdfTemplateSerializer(serializers.ModelSerializer):
+    """简历 PDF 模板序列化器。"""
+
+    template_key = serializers.SerializerMethodField()
+    template_file_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ResumePdfTemplate
+        fields = [
+            'id', 'template_key', 'name', 'description', 'template_file',
+            'template_file_name', 'is_active', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'template_key', 'template_file_name', 'created_at', 'updated_at']
+
+    def get_template_key(self, obj):
+        return f'custom:{obj.id}'
+
+    def get_template_file_name(self, obj):
+        return obj.template_file.name.split('/')[-1] if obj.template_file else ''
+
+    def validate_template_file(self, value):
+        name = (value.name or '').lower()
+        if not name.endswith(('.html', '.htm')):
+            raise serializers.ValidationError('仅支持 HTML 模板文件')
+        return value
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        old_file = instance.template_file.name if instance.template_file else ''
+        instance = super().update(instance, validated_data)
+        new_file = instance.template_file.name if instance.template_file else ''
+        if old_file and old_file != new_file:
+            instance.template_file.storage.delete(old_file)
+        return instance
 
 
 class EducationSerializer(serializers.ModelSerializer):
@@ -295,9 +334,10 @@ class PdfExportSerializer(serializers.Serializer):
     """
     modules = serializers.ListField(
         child=serializers.CharField(),   # 列表中的每个元素都是字符串
-        min_length=1,                    # 至少选择 1 个模块
+        min_length=0,                    # 允许为空，由后端回退到默认模块
         max_length=5,                    # 最多 5 个模块
     )
+    template_key = serializers.CharField(required=False, allow_blank=True, default='default')
 
     def validate_modules(self, value):
         """验证模块名称是否合法。"""
@@ -306,6 +346,12 @@ class PdfExportSerializer(serializers.Serializer):
             if m not in valid:
                 raise serializers.ValidationError(f'无效模块: {m}')
         return value
+
+    def validate_template_key(self, value):
+        try:
+            return validate_pdf_template_key(value)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
 
 
 class VisitorLinkUpdateSerializer(serializers.Serializer):

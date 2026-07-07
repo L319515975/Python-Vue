@@ -20,6 +20,7 @@ import logging     # 日志记录
 
 from django.conf import settings          # Django 配置，获取 API Key 等
 from django.contrib.auth import get_user_model  # 获取用户模型
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from apps.resumes.models import Resume    # 简历模型
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ def build_resume_context(user) -> str:
     return build_resume_context_from_resume(resume)
 
 
-def generate_system_prompt(intent: str, resume_context: str) -> str:
+def generate_system_prompt(intent: str, resume_context: str, owner_label: str = '当前账号') -> str:
     """
     根据用户意图和简历数据生成 AI 的系统提示词（System Prompt）。
 
@@ -112,7 +113,8 @@ def generate_system_prompt(intent: str, resume_context: str) -> str:
     # 基础角色设定
     base_prompt = (
         '你是一个专业的简历助手，帮助用户查询和分析简历信息。'
-        '请根据用户提供的简历数据，用专业、友好的语气回答问题。'
+        f'当前回答对象是账号「{owner_label}」的简历。'
+        '请只根据提供的简历数据回答，不要编造未提供的信息。'
         '回答应该结构化、清晰，必要时使用列表格式。'
     )
 
@@ -130,7 +132,7 @@ def generate_system_prompt(intent: str, resume_context: str) -> str:
     return f'{base_prompt}\n\n{intent_note}\n\n以下是从数据库获取的用户简历数据:\n{resume_context}'
 
 
-def ask_ai(user=None, query: str = '', resume=None) -> dict:
+def ask_ai(user=None, query: str = '', resume=None, target_user=None) -> dict:
     """
     AI 问答的主入口函数 —— 处理用户的 AI 对话请求。
 
@@ -138,6 +140,7 @@ def ask_ai(user=None, query: str = '', resume=None) -> dict:
     - user：用户对象（普通用户场景）
     - query：用户的问题文本
     - resume：简历对象（访客 AI 场景，直接传简历避免再查一次数据库）
+    - target_user：管理员指定或识别出的目标用户
 
     返回值：
     - { 'response': 'AI的回答', 'intent': '识别的意图', 'tokens_used': 150 }
@@ -148,18 +151,50 @@ def ask_ai(user=None, query: str = '', resume=None) -> dict:
     - 如果没有 API Key，使用本地关键词匹配作为降级方案
     """
     intent = detect_intent(query)
+    owner_user = target_user or user
+    owner_label = getattr(owner_user, 'username', '当前账号') if owner_user else '当前账号'
+
     if resume:
         resume_context = build_resume_context_from_resume(resume)
-    elif user:
-        resume_context = build_resume_context(user)
+        owner_label = getattr(resume.user, 'username', owner_label)
+    elif owner_user:
+        resume_context = build_resume_context(owner_user)
     else:
         resume_context = ''
 
     api_key = settings.OPENAI_API_KEY
     if api_key:
-        return _call_openai_api(api_key, intent, resume_context, query)
+        return _call_openai_api(api_key, intent, resume_context, query, owner_label)
     else:
-        return _generate_local_response(intent, resume_context, query, user)
+        return _generate_local_response(intent, resume_context, query, owner_label)
+
+
+def resolve_chat_target(request_user, query: str, target_user_id=None, target_username: str = ''):
+    """
+    根据请求者、显式目标和问题内容，解析 AI 对话目标账号。
+
+    规则：
+    1. 普通用户只能查询自己的简历
+    2. 管理员可以显式指定其他用户
+    3. 管理员未显式指定时，尝试从问题中识别目标用户名
+    """
+    if not request_user or not request_user.is_authenticated:
+        raise PermissionDenied('请先登录后再使用AI对话功能。')
+
+    explicit_target = target_user_id is not None or bool(target_username)
+    if explicit_target:
+        if request_user.role != 'admin':
+            same_username = target_username.lower() == request_user.username.lower() if target_username else False
+            if target_user_id == request_user.id or same_username:
+                return request_user
+            raise PermissionDenied('只有管理员可以查询其他账号的简历信息。')
+        return _get_user_by_identifier(target_user_id, target_username)
+
+    if request_user.role != 'admin':
+        return request_user
+
+    inferred_user = _infer_target_user_from_query(query, request_user)
+    return inferred_user or request_user
 
 
 def polish_text(text: str, module_name: str = '', user=None, resume=None) -> dict:
@@ -573,7 +608,7 @@ def _extract_section(text: str, module: str) -> str:
 
 # ========== OpenAI 对话调用 ==========
 
-def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str) -> dict:
+def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str, owner_label: str) -> dict:
     """
     调用 OpenAI API 进行简历问答。
 
@@ -587,7 +622,7 @@ def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str)
     try:
         from openai import OpenAI
         client = OpenAI(api_key=api_key, base_url=settings.OPENAI_BASE_URL)
-        system_prompt = generate_system_prompt(intent, resume_context)
+        system_prompt = generate_system_prompt(intent, resume_context, owner_label)
 
         response = client.chat.completions.create(
             model=settings.OPENAI_MODEL,
@@ -606,10 +641,10 @@ def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str)
 
     except Exception as e:
         logger.error(f'OpenAI API 调用失败: {e}')
-        return _generate_local_response(intent, resume_context, query, None)
+        return _generate_local_response(intent, resume_context, query, owner_label)
 
 
-def _generate_local_response(intent: str, resume_context: str, query: str, user) -> dict:
+def _generate_local_response(intent: str, resume_context: str, query: str, owner_label: str) -> dict:
     """
     本地响应降级方案 —— 在没有 OpenAI API 时使用。
 
@@ -622,11 +657,11 @@ def _generate_local_response(intent: str, resume_context: str, query: str, user)
     但能提供基本的信息提取功能。
     """
     section_map = {
-        'education': ('教育经历', '以下是您的教育背景信息'),
-        'work_experience': ('工作经历', '以下是您的工作经历信息'),
-        'project': ('项目经历', '以下是您的项目经历信息'),
-        'skill': ('技能列表', '以下是您的技能信息'),
-        'summary': ('个人简介', '以下是您的个人概述'),
+        'education': ('教育经历', '以下是账号「{owner_label}」的教育背景信息'),
+        'work_experience': ('工作经历', '以下是账号「{owner_label}」的工作经历信息'),
+        'project': ('项目经历', '以下是账号「{owner_label}」的项目经历信息'),
+        'skill': ('技能列表', '以下是账号「{owner_label}」的技能信息'),
+        'summary': ('个人简介', '以下是账号「{owner_label}」的个人概述'),
     }
 
     if intent in section_map:
@@ -647,16 +682,66 @@ def _generate_local_response(intent: str, resume_context: str, query: str, user)
                 relevant.append(line)
 
         if relevant:
-            answer = f'{intro}:\n\n' + '\n'.join(relevant)
+            answer = f'{intro.format(owner_label=owner_label)}:\n\n' + '\n'.join(relevant)
         else:
-            answer = f'抱歉，暂未找到与"{section_key}"相关的信息。请确认您已完善简历内容。'
+            answer = f'抱歉，账号「{owner_label}」暂未找到与"{section_key}"相关的信息。请确认简历内容已完善。'
     else:
         if resume_context == '该用户暂无简历信息。':
-            answer = '抱歉，您还没有填写简历信息。请先完善您的简历，然后就可以向我提问了。'
+            answer = f'抱歉，账号「{owner_label}」还没有填写简历信息。请先完善简历，然后再提问。'
         else:
-            answer = f'以下是您的简历概况:\n\n{resume_context}\n\n如需了解某个方面的详细信息，请具体提问，例如"我的项目经历有哪些"或"我的技能列表"。'
+            answer = f'以下是账号「{owner_label}」的简历概况:\n\n{resume_context}\n\n如需了解某个方面的详细信息，请具体提问。'
 
     return {'response': answer, 'intent': intent, 'tokens_used': 0}
+
+
+def _normalize_lookup_text(text: str) -> str:
+    return re.sub(r'\s+', '', (text or '').lower())
+
+
+def _get_user_by_identifier(user_id=None, username: str = ''):
+    query = User.objects.all()
+    if user_id is not None:
+        user = query.filter(id=user_id).first()
+    else:
+        user = query.filter(username__iexact=username).first()
+    if not user:
+        raise NotFound('未找到目标用户。')
+    return user
+
+
+def _infer_target_user_from_query(query: str, request_user):
+    """
+    从问题文本中识别目标用户。
+
+    仅在管理员未显式指定目标时使用。
+    """
+    normalized_query = _normalize_lookup_text(query)
+    if not normalized_query:
+        return None
+
+    candidates = User.objects.exclude(id=request_user.id).only(
+        'id', 'username', 'first_name', 'last_name', 'email'
+    )
+    matched = []
+    for candidate in candidates:
+        aliases = {
+            candidate.username,
+            candidate.first_name,
+            candidate.last_name,
+            candidate.get_full_name(),
+            candidate.email,
+        }
+        for alias in aliases:
+            alias_text = _normalize_lookup_text(alias)
+            if alias_text and alias_text in normalized_query:
+                matched.append(candidate)
+                break
+
+    if len(matched) > 1:
+        raise ValidationError('检测到多个可能的目标用户，请通过 target_user_id 或 target_username 明确指定。')
+    if matched:
+        return matched[0]
+    return None
 
 
 def build_resume_context_from_resume(resume) -> str:

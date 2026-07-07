@@ -60,6 +60,15 @@
           <view class="quick-desc">编辑、审核与发布</view>
         </view>
       </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/pdf-template-manage/index">
+        <view class="quick-icon">
+          <t-icon name="file" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">PDF 模板</view>
+          <view class="quick-desc">上传、启用与管理模板</view>
+        </view>
+      </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
         <view class="quick-icon">
           <t-icon name="tag" size="32rpx" />

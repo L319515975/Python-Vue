@@ -42,6 +42,7 @@
       </view>
       <view class="resume-actions">
         <t-button size="small" variant="outline" shape="round" icon="browse" data-id="{{item.id}}" bind:tap="openDetail">详情</t-button>
+        <t-button size="small" variant="outline" shape="round" icon="download" data-id="{{item.id}}" bind:tap="downloadResume">下载</t-button>
         <t-button size="small" variant="outline" shape="round" icon="edit" data-id="{{item.id}}" bind:tap="openEdit">编辑</t-button>
         <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-id="{{item.id}}" bind:tap="deleteResume">删除</t-button>
       </view>

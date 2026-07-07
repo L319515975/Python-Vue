@@ -22,18 +22,20 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     ResumeViewSet, EducationViewSet, WorkExperienceViewSet,
-    ProjectViewSet, SkillViewSet, TagViewSet,
+    ProjectViewSet, SkillViewSet, TagViewSet, ResumePdfTemplateViewSet,
     visitor_resume_view, visitor_download_pdf, visitor_ai_chat,
 )
 
 # 为ViewSet自动注册URL路由
 router = DefaultRouter()
 router.register(r'tags', TagViewSet, basename='tag')
-router.register(r'', ResumeViewSet, basename='resume')
+router.register(r'pdf-templates', ResumePdfTemplateViewSet, basename='resume-pdf-template')
 router.register(r'educations', EducationViewSet, basename='education')
 router.register(r'work-experiences', WorkExperienceViewSet, basename='work-experience')
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'skills', SkillViewSet, basename='skill')
+# 空前缀路由必须放在最后，否则它的 detail 路由会抢先匹配掉后面的静态前缀路由。
+router.register(r'', ResumeViewSet, basename='resume')
 
 urlpatterns = [
     # 访客相关路由（使用函数视图，无需登录认证）

@@ -63,6 +63,12 @@ const routes = [
         meta: { title: '简历管理', icon: 'Document' },
       },
       {
+        path: 'pdf-templates',                              // /admin/pdf-templates → PDF模板管理
+        name: 'PdfTemplateManage',
+        component: () => import('@/views/admin/PdfTemplateManage.vue'),
+        meta: { title: 'PDF模板', icon: 'Files' },
+      },
+      {
         path: 'tags',                                      // /admin/tags → 标签管理
         name: 'TagManage',
         component: () => import('@/views/admin/TagManage.vue'),
