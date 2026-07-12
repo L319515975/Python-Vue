@@ -42,6 +42,15 @@
       </view>
     </view>
     <view class="quick-grid t-mt-4">
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/user/resume-detail/index">
+        <view class="quick-icon">
+          <t-icon name="user" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">我的简历</view>
+          <view class="quick-desc">查看或编辑自己的简历</view>
+        </view>
+      </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/user-manage/index">
         <view class="quick-icon">
           <t-icon name="user" size="32rpx" />

@@ -504,6 +504,27 @@ class ResumeViewSet(viewsets.ModelViewSet):
 
         return Response(ResumeDetailSerializer(resume).data)
 
+
+    @action(detail=False, methods=['get', 'patch', 'put'], url_path='my-resume')
+    def my_resume(self, request):
+        """获取或更新当前登录人（含管理员）自己的简历。"""
+        resume, created = Resume.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'title': f"{request.user.username}的简历",
+                'status': 'draft',
+            }
+        )
+        if request.method == 'GET':
+            return Response(ResumeDetailSerializer(resume, context={'request': request}).data)
+        serializer = ResumeCreateUpdateSerializer(
+            resume, data=request.data, partial=(request.method == 'PATCH'),
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(ResumeDetailSerializer(resume, context={'request': request}).data)
+
     @action(detail=True, methods=['post'], url_path='update-modules')
     def update_modules(self, request, pk=None):
         """
@@ -608,6 +629,7 @@ class ResumeViewSet(viewsets.ModelViewSet):
         # AI 模式设置
         resume.visitor_ai_mode_enabled = data.get('visitor_ai_mode_enabled', False)
         resume.visitor_ai_enabled = data.get('ai_enabled', True)
+        resume.visitor_ai_system_prompt = data.get('ai_system_prompt', resume.visitor_ai_system_prompt)
         resume.visitor_ai_quota = data.get('ai_quota', 10)
         resume.visitor_ai_used = 0  # 重新生成时重置已用次数
 

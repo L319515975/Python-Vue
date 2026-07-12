@@ -296,4 +296,11 @@ def filter_visitor_data(resume) -> dict:
             if content:
                 data['modules'][mod_key] = content
 
+    # 添加"关于本系统"技术栈信息
+    data['about_system'] = {
+        'title': '关于本系统',
+        'description': '本简历由我独立开发的智能简历管理系统(Smart Resume Hub)自动生成。',
+        'tech_stack': ['Django + DRF (后端)', 'Vue 3 + Pinia (前端)', '微信小程序 (移动端)', 'OpenAI GPT (AI能力)', 'JWT + HMAC (安全认证)'],
+    }
+
     return data

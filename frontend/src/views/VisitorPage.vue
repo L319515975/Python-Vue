@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="visitor-page" v-loading="loading">
     <template v-if="error && !loading">
       <div class="error-page">

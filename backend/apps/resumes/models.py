@@ -1,4 +1,4 @@
-﻿"""简历相关模型 - 包含简历主模型、子模型、标签、审计日志等。
+"""简历相关模型 - 包含简历主模型、子模型、标签、审计日志等。
 
 本模块定义了简历系统的核心数据结构：
 - Resume（简历主表）：存储简历的基本信息、模块配置、访客链接设置
@@ -178,6 +178,8 @@ class Resume(models.Model):
     visitor_ai_enabled = models.BooleanField(default=True, help_text='访客是否可使用AI功能', verbose_name='AI功能开关')
     visitor_ai_quota = models.IntegerField(default=10, help_text='访客AI调用总配额', verbose_name='AI调用配额')
     visitor_ai_used = models.IntegerField(default=0, help_text='访客已使用的AI调用次数', verbose_name='AI已用次数')
+
+    visitor_ai_system_prompt = models.TextField(blank=True, default='', help_text='访客AI模式的自定义System Prompt，为HR等访客提供关于开发者本人的详细背景信息', verbose_name='AI自定义提示词')
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')

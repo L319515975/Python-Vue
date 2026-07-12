@@ -143,6 +143,17 @@ Page({
   },
 
   async fetchDetail() {
+    // 优先使用 my-resume 接口获取当前用户的简历（合管理员）
+    try {
+      const myResume = await resumeApi.myResume()
+      if (myResume && myResume.id) {
+        this.setData({ resumeId: String(myResume.id) })
+        return myResume
+      }
+    } catch (_) {
+      // my-resume 失败，回退到列表查询
+    }
+
     if (this.data.resumeId) {
       return resumeApi.detail(this.data.resumeId)
     }

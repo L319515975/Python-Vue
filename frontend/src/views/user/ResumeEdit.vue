@@ -37,7 +37,7 @@
             <el-button icon="Download" type="success" @click="showPdfDialog = true" :disabled="!resumeId">
               导出PDF
             </el-button>
-            <el-button @click="$router.push('/user')">返回</el-button>
+            <el-button @click="$router.push(isAdminRoute ? '/admin/my-resume' : '/user')">返回</el-button>
           </div>
         </div>
       </template>
@@ -879,63 +879,120 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.edit-form {
-  max-width: 700px;
-}
-
-.textarea-with-polish {
-  position: relative;
-  width: 100%;
-}
-
-.polish-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 1;
-}
-
-.module-hint {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #909399;
-}
-
-@media (max-width: 768px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .edit-form :deep(.el-form-item__label) {
-    float: none;
-    display: block;
-    text-align: left;
-    padding-bottom: 4px;
-  }
-
-  .edit-form :deep(.el-form-item) {
-    display: block;
-  }
-
-  .edit-form :deep(.el-form-item__content) {
-    margin-left: 0 !important;
-  }
-}
+<style scoped>
+
+.card-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+}
+
+
+
+.header-actions {
+
+  display: flex;
+
+  gap: 8px;
+
+}
+
+
+
+.edit-form {
+
+  max-width: 700px;
+
+}
+
+
+
+.textarea-with-polish {
+
+  position: relative;
+
+  width: 100%;
+
+}
+
+
+
+.polish-btn {
+
+  position: absolute;
+
+  top: 4px;
+
+  right: 4px;
+
+  z-index: 1;
+
+}
+
+
+
+.module-hint {
+
+  margin-top: 4px;
+
+  font-size: 12px;
+
+  color: #909399;
+
+}
+
+
+
+@media (max-width: 768px) {
+
+  .card-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+
+
+  .edit-form :deep(.el-form-item__label) {
+
+    float: none;
+
+    display: block;
+
+    text-align: left;
+
+    padding-bottom: 4px;
+
+  }
+
+
+
+  .edit-form :deep(.el-form-item) {
+
+    display: block;
+
+  }
+
+
+
+  .edit-form :deep(.el-form-item__content) {
+
+    margin-left: 0 !important;
+
+  }
+
+}
+
 
 .full-width {
   width: 100%;
@@ -978,4 +1035,5 @@ onMounted(async () => {
   font-size: 12px;
   margin-top: 4px;
 }
-</style>
+</style>
+

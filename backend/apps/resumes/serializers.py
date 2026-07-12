@@ -1,4 +1,4 @@
-﻿"""
+"""
 简历模块的序列化器 —— 将模型实例转换为 JSON（序列化），以及将 JSON 转换为模型实例（反序列化）。
 
 本文件包含：
@@ -161,6 +161,7 @@ class VisitorLinkSerializer(serializers.ModelSerializer):
             'visitor_ai_enabled',       # 是否允许访客使用 AI
             'visitor_ai_quota',         # 访客的 AI 使用配额
             'visitor_ai_used',          # 访客已使用的 AI 次数
+            'visitor_ai_system_prompt', # 自定义 System Prompt
         ]
         read_only_fields = ['visitor_token', 'visitor_ai_used']
 
@@ -236,7 +237,8 @@ class ResumeDetailSerializer(serializers.ModelSerializer):
                   'visitor_enabled', 'visitor_token', 'visitor_expires',
                   'visitor_allow_download', 'public_modules', 'visitor_url',
                   'visitor_ai_mode_enabled', 'visitor_ai_enabled',
-                  'visitor_ai_quota', 'visitor_ai_used',
+                  'visitor_ai_quota', 'visitor_ai_system_prompt', 'visitor_ai_used',
+                  'visitor_ai_system_prompt',
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'ai_processed', 'ai_classification_result',
                             'visitor_token', 'visitor_ai_used',
@@ -274,7 +276,7 @@ class ResumeCreateUpdateSerializer(serializers.ModelSerializer):
                   'visitor_enabled', 'visitor_expires', 'visitor_allow_download',
                   'public_modules',
                   'visitor_ai_mode_enabled', 'visitor_ai_enabled',
-                  'visitor_ai_quota']
+                  'visitor_ai_quota', 'visitor_ai_system_prompt']
         read_only_fields = ['id']
 
     def validate_enabled_modules(self, value):
@@ -372,6 +374,7 @@ class VisitorLinkUpdateSerializer(serializers.Serializer):
     visitor_ai_mode_enabled = serializers.BooleanField(required=False, default=False)
     ai_enabled = serializers.BooleanField(required=False, default=True)
     ai_quota = serializers.IntegerField(required=False, min_value=1, max_value=100, default=10)
+    ai_system_prompt = serializers.CharField(required=False, allow_blank=True, max_length=3000, default="")
 
     def validate_public_modules(self, value):
         """验证公开模块名称是否合法。"""

@@ -25,7 +25,7 @@
             <el-button type="primary" icon="Download" :loading="downloading" @click="downloadResume">
               下载PDF
             </el-button>
-            <el-button icon="Edit" @click="$router.push('/user/edit')">编辑简历</el-button>
+            <el-button icon="Edit" @click="$router.push(isAdminRoute ? '/admin/my-resume-edit' : '/user/edit')">编辑简历</el-button>
           </div>
         </div>
 
@@ -186,7 +186,27 @@
             <el-switch v-model="visitorForm.visitor_ai_mode_enabled" active-text="启用" inactive-text="禁用" :disabled="!visitorForm.enabled" />
           </el-form-item>
           <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI功能开关">
+          </el-form-item>
+          <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI自定义提示词">
+            <el-input
+              v-model="visitorForm.ai_system_prompt"
+              type="textarea"
+              :rows="4"
+              placeholder="例如：你是一个专业的求职助手，关于候选人（开发者）的信息如下：他是一名全栈工程师..."
+              :disabled="!visitorForm.enabled"
+            />
+            <div class="form-tip">HR使用AI模式时，系统将以此提示词为基础进行对话。留空则使用默认提示词。</div>
             <el-switch v-model="visitorForm.ai_enabled" active-text="开启" inactive-text="关闭" :disabled="!visitorForm.enabled" />
+          </el-form-item>
+          <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI自定义提示词">
+            <el-input
+              v-model="visitorForm.ai_system_prompt"
+              type="textarea"
+              :rows="4"
+              placeholder="例如：你是一个专业的求职助手，关于候选人（开发者）的信息如下：他是一名全栈工程师..."
+              :disabled="!visitorForm.enabled"
+            />
+            <div class="form-tip">HR使用AI模式时，系统将以此提示词为基础进行对话。留空则使用默认提示词。</div>
           </el-form-item>
           <el-form-item v-if="visitorForm.visitor_ai_mode_enabled" label="AI调用配额">
             <el-input-number v-model="visitorForm.ai_quota" :min="1" :max="100" :disabled="!visitorForm.enabled" />
@@ -207,13 +227,14 @@
     </template>
 
     <el-empty v-else-if="!loading" description="暂无简历信息">
-      <el-button type="primary" @click="$router.push('/user/edit')">创建简历</el-button>
+      <el-button type="primary" @click="$router.push(isAdminRoute ? '/admin/my-resume-edit' : '/user/edit')">创建简历</el-button>
     </el-empty>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { resumeApi } from '@/api'
 import { downloadBlob } from '@/utils/download'
@@ -244,6 +265,8 @@ const visitorForm = reactive({
   visitor_ai_mode_enabled: false,
   ai_enabled: true,
   ai_quota: 10,
+  ai_system_prompt: "",
+
 })
 
 const moduleLabels = { certificate: '证书', award: '获奖荣誉', language: '语言能力' }
@@ -308,16 +331,16 @@ async function loadTemplates() {
 async function loadResume() {
   loading.value = true
   try {
-    const list = await resumeApi.list()
-    const first = list?.results?.[0]
-    if (!first) {
-      resume.value = null
-      return
-    }
-    resume.value = await resumeApi.detail(first.id)
+    resume.value = await resumeApi.myResume()
     await loadVisitorLinkInfo()
   } catch {
-    resume.value = null
+    try {
+      const list = await resumeApi.list()
+      const first = list?.results?.[0]
+      if (!first) { resume.value = null; return }
+      resume.value = await resumeApi.detail(first.id)
+      await loadVisitorLinkInfo()
+    } catch { resume.value = null }
   } finally {
     loading.value = false
   }
@@ -366,6 +389,7 @@ async function loadVisitorLinkInfo() {
     visitorForm.visitor_ai_mode_enabled = info.visitor_ai_mode_enabled || false
     visitorForm.ai_enabled = info.visitor_ai_enabled !== false
     visitorForm.ai_quota = info.visitor_ai_quota || 10
+    visitorForm.ai_system_prompt = info.visitor_ai_system_prompt || ""
   } catch {
     // 忽略
   }
@@ -383,6 +407,7 @@ async function saveVisitorLink() {
       visitor_ai_mode_enabled: visitorForm.visitor_ai_mode_enabled,
       ai_enabled: visitorForm.ai_enabled,
       ai_quota: visitorForm.ai_quota,
+      ai_system_prompt: visitorForm.ai_system_prompt,
     }
     const result = await resumeApi.generateVisitorLink(resume.value.id, payload)
     visitorLink.value = result

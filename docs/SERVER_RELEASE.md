@@ -1,174 +1,142 @@
 # 服务器发版与部署指南
 
-本文档用于将 `Smart Resume Hub` 发布到正式服务器。
+本文档用于将 Smart Resume Hub 发布到正式服务器。
+
+> 最后更新：2026-07-12
 
 ## 一、服务器要求
 
-### 1. 基础环境
+### 基础环境
 
-- 操作系统：Ubuntu 22.04 LTS 或同类 Linux 发行版
-- CPU：2 核起，推荐 4 核
-- 内存：2 GB 起，推荐 4 GB
-- 磁盘：20 GB 起，推荐 50 GB
-- Python：3.10+
-- Node.js：18+，推荐 20 LTS
-- PostgreSQL：13+，推荐 15+
-- Nginx：1.18+
-- 证书工具：Certbot（如需 HTTPS）
+| 项目 | 最低配置 | 推荐配置 |
+|------|----------|----------|
+| CPU | 2 核 | 4 核 |
+| 内存 | 2 GB | 4 GB |
+| 磁盘 | 20 GB | 50 GB |
+| 操作系统 | Ubuntu 22.04 LTS | Ubuntu 24.04 LTS |
+| Python | 3.10+ | 3.12+ |
+| Node.js | 18+ | 20 LTS |
+| PostgreSQL | 13+ | 16+ |
+| Nginx | 1.18+ | 1.24+ |
 
-### 2. 运行依赖
+### 系统依赖
 
-- 后端 Python 依赖见 `backend/requirements.txt`
-- 前端依赖见 `frontend/package.json`
-- PDF 导出依赖 WeasyPrint 及其系统库
-- AI 功能依赖 OpenAI API，未配置时会走本地降级方案
+`ash
+sudo apt install -y build-essential python3-dev python3-pip python3-venv \\
+                    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \\
+                    libffi-dev libcairo2 libcairo2-dev
+sudo apt install -y certbot python3-certbot-nginx
+`
 
-### 3. 环境变量
+### 环境变量
 
-后端需要准备 `backend/.env`，至少包括：
-
-```env
-DJANGO_SECRET_KEY=change-me
+`env
+DJANGO_SECRET_KEY=your-strong-random-secret-key
 DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
 CORS_ALLOWED_ORIGINS=https://your-domain.com
-
 DB_NAME=resume_db
 DB_USER=resume_user
 DB_PASSWORD=your-strong-password
 DB_HOST=127.0.0.1
 DB_PORT=5432
-
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-3.5-turbo
-
-VISITOR_LINK_SECRET=change-me-too
-```
+VISITOR_LINK_SECRET=another-strong-random-secret
+FRONTEND_URL=https://your-domain.com
+`
 
 ## 二、发版步骤
 
 ### 1. 拉取代码
-
-```bash
-git pull
-```
+`ash
+cd /opt
+git clone <repo-url> smart-resume-hub
+cd smart-resume-hub
+git checkout master && git pull
+`
 
 ### 2. 后端准备
-
-```bash
+`ash
 cd backend
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env
+nano .env
+`
+
+### 3. 数据库
+`ash
+sudo -u postgres psql -c "CREATE DATABASE resume_db;"
+sudo -u postgres psql -c "CREATE USER resume_user WITH PASSWORD 'your-password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE resume_db TO resume_user;"
 python manage.py migrate
-```
-
-如果是首次部署或需要重建示例数据：
-
-```bash
+python manage.py collectstatic --noinput
 python manage.py init_data
-```
+`
 
-### 3. 前端构建
-
-```bash
+### 4. 前端构建
+`ash
 cd frontend
 npm install
 npm run build
-```
+`
 
-构建产物输出到 `frontend/dist/`。
-
-### 4. 配置 Nginx
-
-建议将静态前端挂载到站点根目录，API 反代到后端 Gunicorn。
-
-示例：
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com www.your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com www.your-domain.com;
-
-    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-
-    root /var/www/smart-resume;
-    index index.html;
-
-    location /api/ {
-        proxy_pass http://unix:/run/resume-backend.sock;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Forwarded-Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /static/ {
-        alias /opt/smart-resume-hub/backend/staticfiles/;
-    }
-
-    location /media/ {
-        alias /opt/smart-resume-hub/backend/media/;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-### 5. 启动后端
-
-```bash
-cd backend
-gunicorn config.wsgi:application --bind unix:/run/resume-backend.sock --workers 4 --timeout 120
-```
-
-生产环境建议使用 `systemd` 托管 `gunicorn`。
+### 5. Nginx + Systemd
+见完整配置示例在 docs/ 目录。
 
 ### 6. 发布静态文件
-
-```bash
+`ash
 sudo mkdir -p /var/www/smart-resume
 sudo cp -r frontend/dist/* /var/www/smart-resume/
-```
+`
 
-### 7. 重载服务
+### 7. 小程序发布
+1. 修改 miniprogram/utils/config.js 中 baseUrl
+2. 修改 project.config.json 中 appid
+3. 开发者工具上传代码
+4. 管理后台提交审核发布
 
-```bash
-sudo systemctl reload nginx
+## 三、上线检查清单
+
+### 安全
+- [ ] DJANGO_DEBUG=False
+- [ ] DJANGO_ALLOWED_HOSTS 已配置
+- [ ] CORS_ALLOWED_ORIGINS 无通配符
+- [ ] SECRET_KEY 已更换
+- [ ] VISITOR_LINK_SECRET 已配置
+- [ ] HTTPS 已启用
+
+### 功能
+- [ ] 首页正常打开
+- [ ] API /api/ 返回正确
+- [ ] 管理后台可登录
+- [ ] 管理员我的简历正常
+- [ ] 创建/编辑简历正常
+- [ ] PDF 导出正常
+- [ ] 访客链接正常
+- [ ] 小程序正常
+
+## 四、常规更新流程
+`ash
+git pull
+source backend/venv/bin/activate
+pip install -r backend/requirements.txt
+python backend/manage.py migrate
+cd frontend && npm install && npm run build
+sudo cp -r dist/* /var/www/smart-resume/
 sudo systemctl restart resume-backend
-```
+sudo systemctl reload nginx
+`
 
-## 三、上线检查
+## 五、回滚
+git revert HEAD 或回退到上一版 commit，确认迁移回滚，重新构建前端，重启服务。
 
-- 首页能正常打开
-- `/api/` 能返回 JSON
-- `/admin/` 可登录
-- 登录后能创建/编辑简历
-- 简历详情页能导出 PDF
-- 访客链接可打开，AI 模式和下载权限符合配置
-- 管理端可查看 AI 日志、审计日志、访客 AI 日志
-
-## 四、回滚步骤
-
-1. 保留上一版代码和前端构建产物
-2. 回退到上一版 git commit
-3. 重新执行后端迁移前的检查
-4. 重新构建前端并覆盖发布目录
-5. 重启 `gunicorn` 和 `nginx`
-
-## 五、补充说明
-
-- 如果只改了前端，可以只重新构建并替换 `frontend/dist/`
-- 如果只改了后端接口，前端未变动时不必重新打包前端
-- 如果改动了数据库模型，发版前必须确认迁移脚本已经生成并执行
+## 六、监控
+`ash
+journalctl -u resume-backend -f
+tail -f /var/log/resume-backend/access.log
+tail -f /var/log/nginx/access.log
+`

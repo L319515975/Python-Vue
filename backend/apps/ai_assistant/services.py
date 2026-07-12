@@ -1,4 +1,4 @@
-﻿"""
+"""
 AI 助手的核心服务层 —— 负责与 OpenAI API 交互，处理所有 AI 相关的业务逻辑。
 
 本文件是整个 AI 功能的核心，包含：
@@ -96,7 +96,7 @@ def build_resume_context(user) -> str:
     return build_resume_context_from_resume(resume)
 
 
-def generate_system_prompt(intent: str, resume_context: str, owner_label: str = '当前账号') -> str:
+def generate_system_prompt(intent: str, resume_context: str, owner_label: str = '当前账号', custom_system_prompt: str = '') -> str:
     """
     根据用户意图和简历数据生成 AI 的系统提示词（System Prompt）。
 
@@ -129,7 +129,12 @@ def generate_system_prompt(intent: str, resume_context: str, owner_label: str = 
 
     intent_note = intent_prompts.get(intent, '请综合分析简历信息来回答用户的问题。')
 
-    return f'{base_prompt}\n\n{intent_note}\n\n以下是从数据库获取的用户简历数据:\n{resume_context}'
+    base = f'{base_prompt}\n\n{intent_note}\n\n以下是从数据库获取的用户简历数据:\n{resume_context}'
+
+    if custom_system_prompt:
+        base = f'{custom_system_prompt}\n\n---\n\n{base}'
+
+    return base
 
 
 def ask_ai(user=None, query: str = '', resume=None, target_user=None) -> dict:
@@ -154,9 +159,12 @@ def ask_ai(user=None, query: str = '', resume=None, target_user=None) -> dict:
     owner_user = target_user or user
     owner_label = getattr(owner_user, 'username', '当前账号') if owner_user else '当前账号'
 
+    custom_prompt = ''
     if resume:
         resume_context = build_resume_context_from_resume(resume)
         owner_label = getattr(resume.user, 'username', owner_label)
+        if hasattr(resume, 'visitor_ai_system_prompt') and resume.visitor_ai_system_prompt.strip():
+            custom_prompt = resume.visitor_ai_system_prompt
     elif owner_user:
         resume_context = build_resume_context(owner_user)
     else:
@@ -164,9 +172,9 @@ def ask_ai(user=None, query: str = '', resume=None, target_user=None) -> dict:
 
     api_key = settings.OPENAI_API_KEY
     if api_key:
-        return _call_openai_api(api_key, intent, resume_context, query, owner_label)
+        return _call_openai_api(api_key, intent, resume_context, query, owner_label, custom_system_prompt=custom_prompt)
     else:
-        return _generate_local_response(intent, resume_context, query, owner_label)
+        return _generate_local_response(intent, resume_context, query, owner_label, custom_system_prompt=custom_prompt)
 
 
 def resolve_chat_target(request_user, query: str, target_user_id=None, target_username: str = ''):
@@ -608,7 +616,7 @@ def _extract_section(text: str, module: str) -> str:
 
 # ========== OpenAI 对话调用 ==========
 
-def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str, owner_label: str) -> dict:
+def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str, owner_label: str, custom_system_prompt: str = '') -> dict:
     """
     调用 OpenAI API 进行简历问答。
 
@@ -622,7 +630,7 @@ def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str,
     try:
         from openai import OpenAI
         client = OpenAI(api_key=api_key, base_url=settings.OPENAI_BASE_URL)
-        system_prompt = generate_system_prompt(intent, resume_context, owner_label)
+        system_prompt = generate_system_prompt(intent, resume_context, owner_label, custom_system_prompt)
 
         response = client.chat.completions.create(
             model=settings.OPENAI_MODEL,
@@ -641,10 +649,10 @@ def _call_openai_api(api_key: str, intent: str, resume_context: str, query: str,
 
     except Exception as e:
         logger.error(f'OpenAI API 调用失败: {e}')
-        return _generate_local_response(intent, resume_context, query, owner_label)
+        return _generate_local_response(intent, resume_context, query, owner_label, custom_system_prompt=custom_prompt)
 
 
-def _generate_local_response(intent: str, resume_context: str, query: str, owner_label: str) -> dict:
+def _generate_local_response(intent: str, resume_context: str, query: str, owner_label: str, custom_system_prompt: str = '') -> dict:
     """
     本地响应降级方案 —— 在没有 OpenAI API 时使用。
 
@@ -821,5 +829,19 @@ def build_resume_context_from_resume(resume) -> str:
     tags = resume.tags.all()
     if tags.exists():
         parts.append('\n标签: ' + ', '.join([t.name for t in tags]))
+
+    # 技术栈与系统信息（求职作品展示）
+    parts.append('')
+    parts.append('【关于本系统】')
+    parts.append('本简历由我独立开发的「智能简历管理系统」(Smart Resume Hub) 自动生成。')
+    parts.append('系统技术栈:')
+    parts.append('  - 后端框架: Django + Django REST Framework')
+    parts.append('  - 前端框架: Vue 3 (Composition API + Pinia)')
+    parts.append('  - 移动端: 微信小程序 (WeChat Mini Program)')
+    parts.append('  - AI能力: OpenAI GPT 集成 (简历分析/润色/智能问答)')
+    parts.append('  - 数据库: SQLite (开发) / PostgreSQL (生产)')
+    parts.append('  - PDF生成: WeasyPrint / 自定义HTML模板')
+    parts.append('  - 认证: JWT (SimpleJWT) / HMAC访客签名')
+    parts.append('该系统完整涵盖简历编辑、AI辅助、访客分享、PDF导出、标签管理等模块。')
 
     return '\n'.join(parts)

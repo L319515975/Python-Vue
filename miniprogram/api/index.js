@@ -41,7 +41,9 @@ export const resumeApi = {
       { modules, template_key: templateKey },
       { responseType: 'arraybuffer' },
     ),
-  generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),
+  myResume: () => request.get("/resumes/my-resume/"),
+  updateMyResume: (data) => request.patch("/resumes/my-resume/", data),
+    generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),
   disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),
   visitorLinkInfo: (id) => request.get(`/resumes/${id}/visitor-link-info/`),
 }

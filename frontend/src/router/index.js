@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 路由配置文件 —— 定义应用的所有页面路由。
  *
  * 作用：根据 URL 路径决定渲染哪个页面组件。
@@ -41,14 +41,26 @@ const routes = [
   // ========== 管理员页面（需要 admin 角色） ==========
   {
     path: '/admin',
-    component: () => import('@/components/Layout.vue'),  // 公共布局组件（侧边栏+顶栏）
-    meta: { requiresAuth: true, role: 'admin' },          // 需要登录且角色为 admin
-    children: [                                            // 嵌套路由：在 Layout 内部渲染
+    component: () => import('@/components/Layout.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+    children: [
       {
-        path: '',                                          // /admin → 管理面板首页
+        path: 'my-resume',                                // /admin/my-resume → 我的简历
+        name: 'AdminMyResume',
+        component: () => import('@/views/user/ResumeDetail.vue'),
+        meta: { title: '我的简历', icon: 'UserFilled' },
+      },
+      {
+        path: 'my-resume-edit',                           // /admin/my-resume-edit → 编辑简历
+        name: 'AdminMyResumeEdit',
+        component: () => import('@/views/user/ResumeEdit.vue'),
+        meta: { title: '编辑简历', icon: 'Edit' },
+      },
+      {
+        path: '',                                          // /admin → 管理面板
         name: 'AdminDashboard',
         component: () => import('@/views/admin/Dashboard.vue'),
-        meta: { title: '管理面板', icon: 'DataBoard' },    // 用于面包屑和菜单显示
+        meta: { title: '管理面板', icon: 'DataBoard' },
       },
       {
         path: 'users',                                     // /admin/users → 用户管理
@@ -173,3 +185,4 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+

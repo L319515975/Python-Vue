@@ -1,4 +1,4 @@
-﻿/**
+/**
  * API 接口定义文件 —— 集中管理所有与后端通信的函数。
  *
  * 作用：将所有 API 请求封装为函数，方便在组件中调用。
@@ -82,6 +82,9 @@ export const resumeApi = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   deletePdfTemplate: (id) => request.delete(`/resumes/pdf-templates/${id}/`),
+  // 获取或更新当前登录人的简历（含管理员）
+  myResume: () => request.get('/resumes/my-resume/'),
+  updateMyResume: (data) => request.patch('/resumes/my-resume/', data),
   // 访客链接管理
   generateVisitorLink: (id, data) => request.post(`/resumes/${id}/generate-visitor-link/`, data),  // 生成访客链接
   disableVisitorLink: (id) => request.post(`/resumes/${id}/disable-visitor-link/`),                 // 禁用访客链接
@@ -158,3 +161,4 @@ export const auditLogApi = {
 export const visitorAiUsageApi = {
   list: (params) => request.get('/users/visitor-ai-logs/', { params }),
 }
+
