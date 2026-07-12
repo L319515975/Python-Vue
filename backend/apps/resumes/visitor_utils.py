@@ -19,8 +19,44 @@ import logging
 from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
+
+
+def _get_request_origin(request) -> str:
+    """??????????????????"""
+    if not request:
+        return ""
+
+    origin = request.META.get('HTTP_ORIGIN', '').strip()
+    if origin:
+        return origin.rstrip("/")
+
+    referer = request.META.get('HTTP_REFERER', '').strip()
+    if referer:
+        parsed = urlparse(referer)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+
+    forwarded_host = request.META.get('HTTP_X_FORWARDED_HOST', '').strip()
+    if forwarded_host:
+        scheme = getattr(request, 'scheme', 'http')
+        proto = request.META.get('HTTP_X_FORWARDED_PROTO', '').split(',')[0].strip() or scheme
+        host = forwarded_host.split(',')[0].strip()
+        return f"{proto}://{host}".rstrip("/")
+
+    host = request.META.get('HTTP_HOST', '').strip() or getattr(request, 'get_host', lambda: '')().strip()
+    if host:
+        scheme = getattr(request, 'scheme', 'http')
+        proto = request.META.get('HTTP_X_FORWARDED_PROTO', '').split(',')[0].strip() or scheme
+        if ':' not in host:
+            forwarded_port = request.META.get('HTTP_X_FORWARDED_PORT', '').split(',')[0].strip()
+            if forwarded_port and forwarded_port not in ('80', '443'):
+                host = f'{host}:{forwarded_port}'
+        return f"{proto}://{host}".rstrip("/")
+
+    return ""
 
 
 def get_visitor_secret():
@@ -128,8 +164,8 @@ def get_visitor_url(resume, request=None) -> str:
     role = 'ai' if resume.visitor_ai_mode_enabled else 'visitor'
     sig = generate_visitor_signature(resume.visitor_token, expires_ts, role)
 
-    # 构建基础URL：优先使用前端地址，避免分享链接指向后端端口
-    base_url = getattr(settings, 'FRONTEND_URL', '') or ''
+    # ????URL?????????????????????????????????
+    base_url = _get_request_origin(request) or getattr(settings, 'FRONTEND_URL', '') or ''
     if not base_url and request:
         base_url = f'{request.scheme}://{request.get_host()}'
 
