@@ -1,4 +1,4 @@
-import userStore from '../../store/user'
+﻿import userStore from '../../store/user'
 
 function launchPage(url) {
   return new Promise(function (resolve, reject) {
@@ -120,8 +120,8 @@ Page({
 
   fillAdmin() {
     this.setData({
-      username: 'admin',
-      password: 'admin123',
+      username: '乐福利',
+      password: '123456',
       showPassword: false,
       passwordSuffix: '\u663e\u793a',
     })

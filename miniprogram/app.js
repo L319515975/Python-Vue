@@ -1,7 +1,8 @@
 App({
   globalData: {
     // 与 utils/config.js 保持一致，便于页面调试时统一修改
-    baseUrl: 'http://127.0.0.1:8000/api',
+    // baseUrl: 'http://127.0.0.1:8000/api',
+    baseUrl: 'http://47.101.158.41:8081/api',
     userInfo: null,
   },
 

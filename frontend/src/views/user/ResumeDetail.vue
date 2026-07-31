@@ -564,6 +564,8 @@ onMounted(async () => {
   font-size: 13px;
   margin-top: 8px;
   line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .skills-grid {

@@ -54,8 +54,8 @@
           <div class="login-footer">
             <el-divider>测试账号</el-divider>
             <div class="demo-accounts">
-              <el-tag class="account-tag" effect="plain" @click="fillAccount('admin', 'admin123')">
-                管理员: admin / admin123
+              <el-tag class="account-tag" effect="plain" @click="fillAccount('乐福利', '123456')">
+                管理员: 乐福利 / 123456
               </el-tag>
               <el-tag class="account-tag" type="success" effect="plain" @click="fillAccount('zhangsan', 'user123')">
                 用户: zhangsan / user123
