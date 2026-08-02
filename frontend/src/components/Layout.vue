@@ -164,11 +164,13 @@ async function handleChangePassword() {
 
 <style scoped>
 .layout-shell {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: #f5f7fa;
 }
 
 .layout-aside {
+  height: 100vh;
   background: #0f172a;
   overflow: hidden;
   transition: width 0.24s ease;
@@ -217,6 +219,7 @@ async function handleChangePassword() {
 }
 
 .layout-content {
+  height: 100vh;
   min-width: 0;
 }
 
@@ -274,7 +277,7 @@ async function handleChangePassword() {
 }
 
 .layout-main {
-  min-height: calc(100vh - 60px);
+  min-height: 0;
   padding: 20px;
   overflow: auto;
 }
