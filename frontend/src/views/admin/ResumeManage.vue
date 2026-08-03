@@ -1,53 +1,80 @@
-﻿<template>
+<template>
   <div class="resume-manage">
-    <el-card>
+    <el-card shadow="never" class="page-card">
       <template #header>
-        <div class="card-header">
-          <span>简历管理</span>
+        <div class="page-header">
+          <div>
+            <h2>简历管理</h2>
+            <p>支持搜索、筛选和详情查看。</p>
+          </div>
+          <div class="header-actions">
+            <el-select v-model="selectedTemplateKey" class="template-select" placeholder="PDF模板">
+              <el-option v-for="item in templateOptions" :key="item.template_key" :label="item.name" :value="item.template_key" />
+            </el-select>
+            <el-tag type="info" effect="plain">列表视图</el-tag>
+          </div>
         </div>
       </template>
 
-      <el-form :inline="true" class="search-form">
-        <el-form-item label="搜索">
-          <el-input v-model="search" placeholder="标题/简介" clearable @clear="loadResumes" @keyup.enter="loadResumes" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filterStatus" clearable placeholder="全部" @change="loadResumes">
-            <el-option label="草稿" value="draft" />
-            <el-option label="已发布" value="published" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="Search" @click="loadResumes">查询</el-button>
-        </el-form-item>
+      <el-form class="search-form" label-width="72px">
+        <el-row :gutter="12">
+          <el-col :xs="24" :md="10">
+            <el-form-item label="搜索">
+              <el-input
+                v-model="search"
+                placeholder="标题 / 简介"
+                clearable
+                @clear="handleSearch"
+                @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="8">
+            <el-form-item label="状态">
+              <el-select v-model="filterStatus" clearable placeholder="全部" @change="handleSearch">
+                <el-option label="草稿" value="draft" />
+                <el-option label="已发布" value="published" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="6" class="search-actions">
+            <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
+            <el-button @click="resetFilter">重置</el-button>
+          </el-col>
+        </el-row>
       </el-form>
 
-      <el-table :data="resumes" stripe v-loading="loading">
-        <el-table-column prop="id" label="ID" width="60" />
-        <el-table-column prop="username" label="用户" width="100" />
-        <el-table-column prop="title" label="简历标题" />
-        <el-table-column prop="status" label="状态" width="90">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'published' ? 'success' : 'info'" size="small">
-              {{ row.status === 'published' ? '已发布' : '草稿' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="内容" width="200">
-          <template #default="{ row }">
-            <span style="font-size: 13px; color: #666">
-              教育 {{ row.educations_count }} | 工作 {{ row.work_experiences_count }} | 项目 {{ row.projects_count }} | 技能 {{ row.skills_count }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="file_name" label="文件" width="140" show-overflow-tooltip />
-        <el-table-column prop="updated_at" label="更新时间" width="180" />
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link icon="View" @click="viewDetail(row)">查看</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-skeleton v-if="loading" animated :rows="8" />
+      <template v-else>
+        <el-table v-if="resumes.length" :data="resumes" stripe>
+          <el-table-column prop="id" label="ID" width="72" />
+          <el-table-column prop="username" label="用户" width="120" />
+          <el-table-column prop="title" label="简历标题" min-width="180" />
+          <el-table-column prop="status" label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'published' ? 'success' : 'info'" size="small">
+                {{ row.status === 'published' ? '已发布' : '草稿' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="内容" min-width="210">
+            <template #default="{ row }">
+              <span class="content-summary">
+                教育 {{ row.educations_count }} | 工作 {{ row.work_experiences_count }} | 项目 {{ row.projects_count }} | 技能 {{ row.skills_count }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="file_name" label="文件" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="updated_at" label="更新时间" width="180" />
+          <el-table-column label="操作" width="170" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" link icon="View" @click="viewDetail(row)">查看</el-button>
+              <el-button type="primary" link icon="Download" :loading="downloadingId === row.id" @click="downloadResume(row)">下载</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty v-else description="暂无简历数据" :image-size="64" />
+      </template>
 
       <el-pagination
         v-if="total > pageSize"
@@ -56,70 +83,74 @@
         :page-size="pageSize"
         :current-page="currentPage"
         class="pagination"
-        @current-change="p => { currentPage = p; loadResumes() }"
+        @current-change="handlePageChange"
       />
     </el-card>
 
-    <!-- Detail Drawer -->
-    <el-drawer v-model="drawerVisible" :title="currentResume?.title || '简历详情'" :size="isMobile ? '90%' : '600px'">
-      <template v-if="currentResume">
-        <el-descriptions :column="isMobile ? 1 : 2" border>
-          <el-descriptions-item label="用户">{{ currentResume.username }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="currentResume.status === 'published' ? 'success' : 'info'" size="small">
-              {{ currentResume.status === 'published' ? '已发布' : '草稿' }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="简介" :span="isMobile ? 1 : 2">{{ currentResume.summary || '暂无' }}</el-descriptions-item>
-          <el-descriptions-item label="文件" :span="isMobile ? 1 : 2">{{ currentResume.file_name || '未上传' }}</el-descriptions-item>
-        </el-descriptions>
+    <el-drawer v-model="drawerVisible" :title="currentResume?.title || '简历详情'" :size="isMobile ? '92%' : '620px'">
+      <div class="drawer-body" v-loading="detailLoading">
+        <template v-if="currentResume">
+          <el-descriptions :column="isMobile ? 1 : 2" border>
+            <el-descriptions-item label="用户">{{ currentResume.username }}</el-descriptions-item>
+            <el-descriptions-item label="状态">
+              <el-tag :type="currentResume.status === 'published' ? 'success' : 'info'" size="small">
+                {{ currentResume.status === 'published' ? '已发布' : '草稿' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="简介" :span="isMobile ? 1 : 2">{{ currentResume.summary || '暂无' }}</el-descriptions-item>
+            <el-descriptions-item label="文件" :span="isMobile ? 1 : 2">{{ currentResume.file_name || '未上传' }}</el-descriptions-item>
+          </el-descriptions>
 
-        <h4 style="margin: 16px 0 8px">教育经历</h4>
-        <el-timeline v-if="detailData.educations?.length">
-          <el-timeline-item v-for="edu in detailData.educations" :key="edu.id" :timestamp="edu.start_date">
-            {{ edu.school }} - {{ edu.degree }} - {{ edu.major }}
-          </el-timeline-item>
-        </el-timeline>
-        <el-empty v-else description="暂无" :image-size="60" />
+          <h4 class="section-title">教育经历</h4>
+          <el-timeline v-if="detailData.educations?.length">
+            <el-timeline-item v-for="edu in detailData.educations" :key="edu.id" :timestamp="edu.start_date">
+              {{ edu.school }} - {{ edu.degree }} - {{ edu.major }}
+            </el-timeline-item>
+          </el-timeline>
+          <el-empty v-else description="暂无教育经历" :image-size="56" />
 
-        <h4 style="margin: 16px 0 8px">工作经历</h4>
-        <el-timeline v-if="detailData.work_experiences?.length">
-          <el-timeline-item v-for="w in detailData.work_experiences" :key="w.id" :timestamp="w.start_date">
-            {{ w.company }} - {{ w.position }}
-            <p style="color: #666; font-size: 13px; margin-top: 4px">{{ w.description }}</p>
-          </el-timeline-item>
-        </el-timeline>
-        <el-empty v-else description="暂无" :image-size="60" />
+          <h4 class="section-title">工作经历</h4>
+          <el-timeline v-if="detailData.work_experiences?.length">
+            <el-timeline-item v-for="work in detailData.work_experiences" :key="work.id" :timestamp="work.start_date">
+              {{ work.company }} - {{ work.position }}
+              <p class="detail-desc">{{ work.description }}</p>
+            </el-timeline-item>
+          </el-timeline>
+          <el-empty v-else description="暂无工作经历" :image-size="56" />
 
-        <h4 style="margin: 16px 0 8px">项目经历</h4>
-        <el-timeline v-if="detailData.projects?.length">
-          <el-timeline-item v-for="p in detailData.projects" :key="p.id" :timestamp="p.start_date">
-            {{ p.name }} ({{ p.role }})
-            <p style="color: #666; font-size: 13px; margin-top: 4px">技术栈: {{ p.tech_stack }}</p>
-            <p style="color: #666; font-size: 13px">{{ p.description }}</p>
-          </el-timeline-item>
-        </el-timeline>
-        <el-empty v-else description="暂无" :image-size="60" />
+          <h4 class="section-title">项目经历</h4>
+          <el-timeline v-if="detailData.projects?.length">
+            <el-timeline-item v-for="project in detailData.projects" :key="project.id" :timestamp="project.start_date">
+              {{ project.name }} ({{ project.role }})
+              <p class="detail-desc">技术栈: {{ project.tech_stack }}</p>
+              <p class="detail-text">{{ project.description }}</p>
+            </el-timeline-item>
+          </el-timeline>
+          <el-empty v-else description="暂无项目经历" :image-size="56" />
 
-        <h4 style="margin: 16px 0 8px">技能</h4>
-        <div v-if="detailData.skills?.length" style="display: flex; flex-wrap: wrap; gap: 8px">
-          <el-tag v-for="s in detailData.skills" :key="s.id">
-            {{ s.name }} ({{ s.level }}%)
-          </el-tag>
-        </div>
-        <el-empty v-else description="暂无" :image-size="60" />
-      </template>
+          <h4 class="section-title">技能</h4>
+          <div v-if="detailData.skills?.length" class="skills-list">
+            <el-tag v-for="skill in detailData.skills" :key="skill.id">{{ skill.name }} ({{ skill.level }}%)</el-tag>
+          </div>
+          <el-empty v-else description="暂无技能" :image-size="56" />
+        </template>
+      </div>
     </el-drawer>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useMobile } from '@/composables/useMobile'
 import { resumeApi } from '@/api'
+import { ElMessage } from 'element-plus'
+import { downloadBlob } from '@/utils/download'
 
-const isMobile = computed(() => window.innerWidth <= 768)
+const { isMobile } = useMobile()
+
 const resumes = ref([])
 const loading = ref(false)
+const detailLoading = ref(false)
 const total = ref(0)
 const pageSize = ref(20)
 const currentPage = ref(1)
@@ -128,6 +159,24 @@ const filterStatus = ref('')
 const drawerVisible = ref(false)
 const currentResume = ref(null)
 const detailData = ref({})
+const templateOptions = ref([
+  { template_key: 'default', name: '经典简历' },
+  { template_key: 'modern', name: '现代简历' },
+])
+const selectedTemplateKey = ref('default')
+const downloadingId = ref(null)
+
+async function loadTemplates() {
+  try {
+    const data = await resumeApi.pdfTemplates()
+    templateOptions.value = data.length ? data : templateOptions.value
+    if (!templateOptions.value.some(item => item.template_key === selectedTemplateKey.value)) {
+      selectedTemplateKey.value = templateOptions.value[0]?.template_key || 'default'
+    }
+  } catch {
+    // 保留内置模板
+  }
+}
 
 async function loadResumes() {
   loading.value = true
@@ -138,40 +187,168 @@ async function loadResumes() {
     const data = await resumeApi.list(params)
     resumes.value = data.results || []
     total.value = data.count || 0
-  } catch { /* */ } finally {
+  } catch {
+    resumes.value = []
+    total.value = 0
+  } finally {
     loading.value = false
   }
+}
+
+function handleSearch() {
+  currentPage.value = 1
+  loadResumes()
+}
+
+function resetFilter() {
+  search.value = ''
+  filterStatus.value = ''
+  currentPage.value = 1
+  loadResumes()
+}
+
+function handlePageChange(page) {
+  currentPage.value = page
+  loadResumes()
 }
 
 async function viewDetail(row) {
   currentResume.value = row
   drawerVisible.value = true
+  detailLoading.value = true
   try {
-    const data = await resumeApi.detail(row.id)
-    detailData.value = data
-  } catch { /* */ }
+    detailData.value = await resumeApi.detail(row.id)
+  } catch {
+    detailData.value = {}
+  } finally {
+    detailLoading.value = false
+  }
 }
 
-onMounted(loadResumes)
+function buildPdfFilename(row) {
+  const raw = `${row.username || 'resume'}_${row.title || 'pdf'}`
+  return raw.replace(/[\\/:*?"<>|]/g, '_') + '.pdf'
+}
+
+async function downloadResume(row) {
+  downloadingId.value = row.id
+  try {
+    const modules = row.enabled_modules?.length
+      ? row.enabled_modules
+      : ['education', 'work_experience', 'project', 'skill']
+    const blob = await resumeApi.exportPdf(row.id, modules, selectedTemplateKey.value)
+    downloadBlob(blob, buildPdfFilename(row))
+    ElMessage.success('PDF 下载成功')
+  } catch {
+    ElMessage.error('PDF 下载失败')
+  } finally {
+    downloadingId.value = null
+  }
+}
+
+onMounted(async () => {
+  await loadTemplates()
+  await loadResumes()
+})
 </script>
 
 <style scoped>
-.card-header {
+.resume-manage {
+  min-width: 0;
+}
+
+.page-card {
+  border: 1px solid #ebeef5;
+}
+
+.page-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
   align-items: center;
+  gap: 8px;
 }
+
+.template-select {
+  width: 160px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333333;
+}
+
+.page-header p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #666666;
+}
+
 .search-form {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
+
+.search-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
 }
 
+.content-summary {
+  font-size: 13px;
+  color: #666666;
+}
+
+.drawer-body {
+  min-height: 240px;
+}
+
+.section-title {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.detail-desc,
+.detail-text {
+  margin-top: 4px;
+  color: #666666;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 @media (max-width: 768px) {
-  .search-form :deep(.el-form-item) {
-    margin-bottom: 8px;
+  .page-header {
+    flex-direction: column;
+  }
+
+  .search-actions {
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
+
+  .pagination {
+    justify-content: center;
   }
 }
 </style>

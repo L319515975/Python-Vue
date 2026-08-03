@@ -20,7 +20,7 @@ staticfiles/
 # Node
 node_modules/
 frontend/dist/
-
+miniprogram_npm/
 # IDE
 .vscode/
 .idea/
@@ -35,3 +35,5 @@ desktop.ini
 # Misc
 *.bak
 *.tmp
+# CodeGraph
+.codegraph/

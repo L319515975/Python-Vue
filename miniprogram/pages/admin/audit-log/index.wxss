@@ -1,0 +1,67 @@
+.admin-log-page {
+  padding-bottom: 40rpx;
+  box-sizing: border-box;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+.page-head .title {
+  margin-bottom: 8rpx;
+}
+
+.search-shell {
+  padding: 20rpx;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.log-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.log-action {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--app-text);
+  line-height: 1.35;
+}
+
+.log-meta {
+  font-size: 22rpx;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+@media (max-width: 768rpx) {
+  .page-head,
+  .log-head,
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

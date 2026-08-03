@@ -1,0 +1,9 @@
+{
+  "name": "resume-system-miniprogram",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Smart Resume System WeChat Mini Program",
+  "dependencies": {
+    "tdesign-miniprogram": "^1.15.2"
+  }
+}

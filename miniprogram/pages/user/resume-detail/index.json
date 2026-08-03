@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "简历详情",
+  "usingComponents": {
+    "user-bottom-nav": "../../../components/user-bottom-nav/index"
+  }
+}

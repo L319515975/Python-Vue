@@ -1,0 +1,25 @@
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.template-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.template-tags {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.template-meta {
+  font-size: 24rpx;
+  color: var(--app-text-secondary);
+  word-break: break-all;
+}

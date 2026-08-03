@@ -1,0 +1,177 @@
+<view class="page dashboard-page">
+  <view class="hero-card card surface">
+    <view class="hero-top">
+      <view class="hero-copy">
+        <view class="title">管理后台</view>
+        <view class="sub">当前登录：{{userInfo.username || '-'}}</view>
+        <view class="hero-tags">
+          <t-tag theme="primary" variant="light" shape="round" size="small">管理员</t-tag>
+          <t-tag theme="success" variant="light" shape="round" size="small">系统概览</t-tag>
+        </view>
+      </view>
+      <view class="hero-badge">
+        <t-icon name="setting" size="36rpx" />
+      </view>
+    </view>
+    <view class="hero-tip">统一查看核心数据、快速进入常用功能，并保持管理后台与登录页同一套品牌色。</view>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/user-manage/index">
+      <t-icon name="user" size="40rpx" class="quick-icon" />
+      <text class="stat-num">{{stats.userCount}}</text>
+      <text class="stat-label">用户</text>
+    </view>
+    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
+      <t-icon name="file" size="40rpx" class="quick-icon" />
+      <text class="stat-num">{{stats.resumeCount}}</text>
+      <text class="stat-label">简历</text>
+    </view>
+    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
+      <t-icon name="tag" size="40rpx" class="quick-icon" />
+      <text class="stat-num">{{stats.tagCount}}</text>
+      <text class="stat-label">标签</text>
+    </view>
+  </view>
+
+  <view class="section-shell surface">
+    <view class="section-head">
+      <view>
+        <view class="section-title">快捷入口</view>
+        <view class="section-subtitle">常用管理页</view>
+      </view>
+    </view>
+    <view class="quick-grid t-mt-4">
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/user/resume-detail/index">
+        <view class="quick-icon">
+          <t-icon name="user" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">我的简历</view>
+          <view class="quick-desc">查看或编辑自己的简历</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/user-manage/index">
+        <view class="quick-icon">
+          <t-icon name="user" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">用户管理</view>
+          <view class="quick-desc">账号、角色与启停</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
+        <view class="quick-icon">
+          <t-icon name="file" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">简历管理</view>
+          <view class="quick-desc">编辑、审核与发布</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/pdf-template-manage/index">
+        <view class="quick-icon">
+          <t-icon name="file" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">PDF 模板</view>
+          <view class="quick-desc">上传、启用与管理模板</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
+        <view class="quick-icon">
+          <t-icon name="tag" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">标签管理</view>
+          <view class="quick-desc">分类标签维护</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/visitor-ai-logs/index">
+        <view class="quick-icon">
+          <t-icon name="chart-bar" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">访客 AI 日志</view>
+          <view class="quick-desc">调用记录与结果回溯</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/ai-logs/index">
+        <view class="quick-icon">
+          <t-icon name="activity" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">AI 日志</view>
+          <view class="quick-desc">对话、润色与分类记录</view>
+        </view>
+      </view>
+      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/audit-log/index">
+        <view class="quick-icon">
+          <t-icon name="file-safety" size="32rpx" />
+        </view>
+        <view class="quick-copy">
+          <view class="quick-title">审计日志</view>
+          <view class="quick-desc">后台操作留痕</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-shell surface recent-section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">最近 AI 记录</view>
+        <view class="section-subtitle">{{recentLogs.length}} 条</view>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="state-panel">
+      <t-loading loading="{{true}}" text="正在加载最近记录" />
+    </view>
+
+    <t-cell-group wx:elif="{{recentLogs.length}}" theme="card">
+      <t-cell
+        wx:for="{{recentLogs}}"
+        wx:for-item="log"
+        wx:key="id"
+        title="{{log.query || log.original_text || '-'}}"
+        note="{{log.created_at || ''}}"
+        description="{{log.action || 'AI 交互'}}"
+        hover
+        arrow
+      />
+    </t-cell-group>
+
+    <t-empty wx:else description="暂无记录" />
+  </view>
+
+  <button class="logout-btn surface" bindtap="handleLogout">退出登录</button>
+
+  <view class="ai-fab" bindtap="toggleFloating">
+    <t-icon name="chat" size="32rpx" />
+  </view>
+
+  <view class="ai-panel {{floatingVisible ? 'ai-panel-show' : ''}}">
+    <view class="ai-panel-head">
+      <view>
+        <view class="section-title">AI 问答</view>
+        <view class="section-subtitle">可按指定用户姓名或简历关键词提问</view>
+      </view>
+      <view class="ai-close" bindtap="closeFloating">
+        <t-icon name="close" size="24rpx" />
+      </view>
+    </view>
+    <t-input
+      borderless="{{true}}"
+      clearable="{{true}}"
+      clearTrigger="always"
+      prefixIcon="search"
+      placeholder="例如：查询张三的教育经历"
+      value="{{floatingQuestion}}"
+      bind:change="onFloatingInput"
+    />
+    <t-button class="t-mt-3" block="{{true}}" theme="primary" loading="{{floatingSubmitting}}" disabled="{{floatingSubmitting}}" bind:tap="askFloatingAi">
+      发送
+    </t-button>
+  </view>
+</view>

@@ -1,0 +1,306 @@
+{
+  "updatedAt": "2026-07-03T14:54:22.764Z",
+  "note": "由 sync-vue-to-miniprogram.cjs 自动生成，用于追踪 Vue3 与小程序的同步状态。",
+  "sourceHashes": {
+    "frontendApi": "6f65093eb28578189e707d3acfe3c827182d5b633906daa6891d78c9f0d7ea07",
+    "frontendRouter": "a7c6bce95b435960bb2493cf89915ea19aabe45ec06a66203fb793867506a2f5",
+    "miniprogramApi": "0b40e73276f89719d13361840add6d803ff56ee3f3e359b16d0bf332f367ffa3"
+  },
+  "frontendRoutes": [
+    {
+      "path": "/login",
+      "name": "Login",
+      "title": ""
+    },
+    {
+      "path": "/visitor/:token",
+      "name": "VisitorResume",
+      "title": ""
+    },
+    {
+      "path": "/admin",
+      "name": "AdminDashboard",
+      "title": "管理面板"
+    },
+    {
+      "path": "users",
+      "name": "UserManage",
+      "title": "用户管理"
+    },
+    {
+      "path": "resumes",
+      "name": "ResumeManage",
+      "title": "简历管理"
+    },
+    {
+      "path": "tags",
+      "name": "TagManage",
+      "title": "标签管理"
+    },
+    {
+      "path": "ai-logs",
+      "name": "AiLogs",
+      "title": "AI日志"
+    },
+    {
+      "path": "audit-logs",
+      "name": "AuditLog",
+      "title": "操作审计"
+    },
+    {
+      "path": "/user",
+      "name": "ResumeDetail",
+      "title": "我的简历"
+    },
+    {
+      "path": "edit",
+      "name": "ResumeEdit",
+      "title": "编辑简历"
+    }
+  ],
+  "frontendApis": [
+    {
+      "method": "POST",
+      "url": "/users/login/"
+    },
+    {
+      "method": "POST",
+      "url": "/users/token/refresh/"
+    },
+    {
+      "method": "GET",
+      "url": "/users/me/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/users/me/"
+    },
+    {
+      "method": "POST",
+      "url": "/users/change-password/"
+    },
+    {
+      "method": "GET",
+      "url": "/users/"
+    },
+    {
+      "method": "POST",
+      "url": "/users/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/users/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/users/${id}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/tags/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/tags/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/tags/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/tags/${id}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/${id}/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/${id}/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/upload_file/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/update-modules/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/set-tags/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/export-pdf/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/generate-visitor-link/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/${id}/disable-visitor-link/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/${id}/visitor-link-info/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/visitor/${token}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/visitor/${token}/download/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/visitor/${token}/ai-chat/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/educations/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/educations/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/educations/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/educations/${id}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/work-experiences/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/work-experiences/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/work-experiences/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/work-experiences/${id}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/projects/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/projects/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/projects/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/projects/${id}/"
+    },
+    {
+      "method": "GET",
+      "url": "/resumes/skills/"
+    },
+    {
+      "method": "POST",
+      "url": "/resumes/skills/"
+    },
+    {
+      "method": "PATCH",
+      "url": "/resumes/skills/${id}/"
+    },
+    {
+      "method": "DELETE",
+      "url": "/resumes/skills/${id}/"
+    },
+    {
+      "method": "POST",
+      "url": "/ai/chat/"
+    },
+    {
+      "method": "POST",
+      "url": "/ai/polish/"
+    },
+    {
+      "method": "GET",
+      "url": "/ai/history/"
+    },
+    {
+      "method": "GET",
+      "url": "/ai/logs/"
+    },
+    {
+      "method": "GET",
+      "url": "/ai/polish-logs/"
+    },
+    {
+      "method": "GET",
+      "url": "/ai/classification-logs/"
+    },
+    {
+      "method": "GET",
+      "url": "/users/audit-logs/"
+    },
+    {
+      "method": "GET",
+      "url": "/users/visitor-ai-logs/"
+    }
+  ],
+  "miniprogramPages": [
+    "pages/login/index",
+    "pages/user/resume-detail/index",
+    "pages/user/resume-edit/index",
+    "pages/visitor/index",
+    "pages/admin/dashboard/index",
+    "pages/admin/user-manage/index",
+    "pages/admin/resume-manage/index",
+    "pages/admin/tag-manage/index",
+    "pages/admin/ai-logs/index",
+    "pages/admin/audit-log/index",
+    "pages/admin/visitor-ai-logs/index"
+  ],
+  "frontendSourceFiles": [
+    "frontend/src/api/index.js",
+    "frontend/src/App.vue",
+    "frontend/src/components/AiAssistant.vue",
+    "frontend/src/components/Layout.vue",
+    "frontend/src/components/PolishDialog.vue",
+    "frontend/src/composables/useMobile.js",
+    "frontend/src/main.js",
+    "frontend/src/router/index.js",
+    "frontend/src/stores/user.js",
+    "frontend/src/utils/request.js",
+    "frontend/src/views/admin/AiLogs.vue",
+    "frontend/src/views/admin/AuditLog.vue",
+    "frontend/src/views/admin/Dashboard.vue",
+    "frontend/src/views/admin/ResumeManage.vue",
+    "frontend/src/views/admin/TagManage.vue",
+    "frontend/src/views/admin/UserManage.vue",
+    "frontend/src/views/Login.vue",
+    "frontend/src/views/user/ResumeDetail.vue",
+    "frontend/src/views/user/ResumeEdit.vue",
+    "frontend/src/views/VisitorPage.vue"
+  ]
+}

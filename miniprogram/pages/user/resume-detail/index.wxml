@@ -1,0 +1,153 @@
+<view class="page resume-detail-page">
+  <block wx:if="{{loading}}">
+    <view class="card state-card surface">
+      <t-loading loading="{{true}}" text="正在加载简历" />
+    </view>
+  </block>
+
+  <block wx:elif="{{resume}}">
+    <view class="card hero-card surface">
+      <view class="hero-top">
+        <view class="hero-copy">
+          <view class="title">{{resume.title || '我的简历'}}</view>
+          <view class="sub">{{resume.summary || '暂无简介'}}</view>
+        </view>
+        <t-button variant="outline" shape="round" icon="edit" bind:tap="goEdit">编辑</t-button>
+      </view>
+      <view class="hero-tags">
+        <t-tag theme="primary" variant="light" shape="round" size="small">状态：{{resume.status || '草稿'}}</t-tag>
+        <t-tag theme="success" variant="light" shape="round" size="small">模块：{{resume.enabled_modules ? resume.enabled_modules.length : 0}}</t-tag>
+        <t-tag theme="warning" variant="light" shape="round" size="small">标签：{{tags.length}}</t-tag>
+      </view>
+    </view>
+
+    <view class="card surface section-card" wx:if="{{moduleList.length}}">
+      <view class="section-head">
+        <view>
+          <view class="section-title">模块管理</view>
+          <view class="section-subtitle">控制对外展示的内容范围。</view>
+        </view>
+      </view>
+      <view class="module-grid t-mt-4">
+        <view
+          wx:for="{{moduleList}}"
+          wx:key="name"
+          wx:for-item="module"
+          class="module-item {{module.checked ? 'module-item-active' : ''}}"
+          data-name="{{module.name}}"
+          bindtap="toggleModule"
+        >
+          <text class="module-label">{{module.label}}</text>
+          <text class="module-status">{{module.checked ? '已启用' : '未启用'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <block wx:for="{{sections}}" wx:key="title" wx:for-item="section">
+      <view class="card surface section-card">
+        <view class="section-title">{{section.title}}</view>
+        <block wx:if="{{section.kind == 'object'}}">
+          <view class="section-item" wx:for="{{section.items}}" wx:key="title" wx:for-item="row">
+            <text class="item-title">{{row.title}}</text>
+            <text class="item-desc">{{row.desc}}</text>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="text-item" wx:for="{{section.items}}" wx:key="*this" wx:for-item="text">{{text}}</view>
+        </block>
+      </view>
+    </block>
+
+    <view class="card surface section-card">
+      <view class="section-head">
+        <view>
+          <view class="section-title">标签</view>
+          <view class="section-subtitle">为简历补充检索与分类信息。</view>
+        </view>
+        <t-tag theme="primary" variant="light" shape="round" size="small">{{tags.length}} 个</t-tag>
+      </view>
+      <view wx:if="{{tags.length}}" class="tag-list t-mt-4">
+        <view
+          class="tag {{tag.selected ? 'tag-selected' : ''}}"
+          wx:for="{{tags}}"
+          wx:key="id"
+          wx:for-item="tag"
+          data-value="{{tag.id}}"
+          bindtap="toggleTag"
+        >
+          {{tag.name}}
+        </view>
+      </view>
+      <t-empty wx:else description="暂无标签" />
+    </view>
+
+    <view class="card surface section-card">
+      <view class="section-head">
+        <view>
+          <view class="section-title">访客链接</view>
+          <view class="section-subtitle">分享后可给外部查看或下载简历。</view>
+        </view>
+        <t-tag theme="primary" variant="light" shape="round" size="small">{{visitor.enabled ? '已启用' : '未启用'}}</t-tag>
+      </view>
+      <block wx:if="{{visitor.url}}">
+        <view class="link-text t-mt-4">{{visitor.url}}</view>
+        <view class="sub-line">AI 配额：{{visitor.used}} / {{visitor.quota}}，剩余 {{visitor.remaining}}</view>
+        <view class="sub-line">有效期：{{visitor.expires}}</view>
+        <view class="sub-line">公开模块：{{visitor.publicModulesText}}</view>
+        <view class="btn-row t-mt-4">
+          <t-button variant="outline" shape="round" icon="copy" bind:tap="copyVisitorLink">复制链接</t-button>
+          <t-button variant="outline" shape="round" icon="refresh" loading="{{visitorLoading}}" bind:tap="refreshVisitorLink">刷新</t-button>
+          <t-button theme="primary" shape="round" icon="add" bind:tap="generateVisitorLink">生成</t-button>
+          <t-button theme="danger" variant="outline" shape="round" icon="close" bind:tap="disableVisitorLink">停用</t-button>
+        </view>
+      </block>
+      <block wx:else>
+        <t-empty description="暂无访客链接" />
+        <t-button class="t-mt-4" block="{{true}}" theme="primary" shape="round" bind:tap="generateVisitorLink">生成访客链接</t-button>
+      </block>
+    </view>
+
+    <view class="card surface action-card">
+      <t-button block="{{true}}" theme="primary" shape="round" bind:tap="exportPdf">下载 PDF</t-button>
+      <t-button class="t-mt-3" block="{{true}}" variant="outline" shape="round" bind:tap="refresh">刷新</t-button>
+    </view>
+
+    <view class="ai-fab" bind:tap="toggleAi">
+      <t-icon name="chat" size="32rpx" />
+    </view>
+
+    <view class="ai-panel {{aiVisible ? 'ai-panel-show' : ''}}">
+      <view class="ai-panel-head">
+        <view>
+          <view class="section-title">AI 问答</view>
+          <view class="section-subtitle">仅基于当前用户的简历信息回答</view>
+        </view>
+        <view class="ai-close" bind:tap="closeAi">
+          <t-icon name="close" size="24rpx" />
+        </view>
+      </view>
+      <view class="ai-summary">当前简历：{{resume.title || '未命名简历'}}</view>
+      <t-input
+        borderless="{{true}}"
+        clearable="{{true}}"
+        clearTrigger="always"
+        prefixIcon="search"
+        placeholder="例如：我的优势是什么？"
+        value="{{aiQuestion}}"
+        bind:change="onAiInput"
+      />
+      <t-button class="t-mt-3" block="{{true}}" theme="primary" loading="{{aiSubmitting}}" disabled="{{aiSubmitting}}" bind:tap="askAi">
+        发送
+      </t-button>
+      <view wx:if="{{aiAnswer}}" class="ai-answer t-mt-3">{{aiAnswer}}</view>
+    </view>
+  </block>
+
+  <view wx:else class="card surface empty-card">
+    <view class="title">暂无简历</view>
+    <view class="sub">先创建一份简历，再回来查看。</view>
+    <t-button class="t-mt-4" theme="primary" shape="round" bind:tap="goEdit">创建简历</t-button>
+  </view>
+
+  <user-bottom-nav active="detail"></user-bottom-nav>
+</view>

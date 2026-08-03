@@ -1,23 +1,47 @@
-﻿<template>
+<template>
   <div class="visitor-page" v-loading="loading">
-    <template v-if="resume">
-      <!-- Quota Banner for HR mode -->
-      <div v-if="isHRMode" class="hr-quota-banner">
+    <template v-if="error && !loading">
+      <div class="error-page">
+        <el-icon :size="64" color="#c0c4cc"><WarningFilled /></el-icon>
+        <h2>访问受限</h2>
+        <p>{{ error }}</p>
+        <el-button type="primary" @click="$router.push('/login')">前往登录</el-button>
+      </div>
+    </template>
+
+    <template v-else-if="loading && !resume">
+      <div class="skeleton-wrapper">
+        <div class="skeleton-header">
+          <div class="skeleton-line skeleton-title"></div>
+          <div class="skeleton-line skeleton-subtitle"></div>
+          <div class="skeleton-line skeleton-text"></div>
+        </div>
+        <div class="skeleton-body">
+          <div v-for="i in 3" :key="i" class="skeleton-card">
+            <div class="skeleton-line skeleton-card-title"></div>
+            <div class="skeleton-line skeleton-card-text"></div>
+            <div class="skeleton-line skeleton-card-text short"></div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="resume">
+      <div v-if="isAiMode" class="ai-quota-banner">
         <el-icon><ChatDotRound /></el-icon>
-        <span>HR AI咨询剩余 <strong>{{ aiRemaining }}</strong> / {{ aiTotal }} 次</span>
+        <span>AI咨询剩余 <strong>{{ aiRemaining }}</strong> / {{ aiTotal }} 次</span>
         <el-tag v-if="aiRemaining <= 0" type="danger" size="small">配额已用尽</el-tag>
       </div>
 
-      <!-- Header -->
-      <div class="visitor-header">
+      <header class="visitor-header">
         <div class="header-content">
           <h1 class="resume-title">{{ resume.title }}</h1>
           <p class="resume-owner">{{ resume.username }} 的个人简历</p>
           <p v-if="resume.summary" class="resume-summary">{{ resume.summary }}</p>
           <div v-if="resume.tags?.length" class="resume-tags">
             <el-tag
-              v-for="(tag, i) in resume.tags"
-              :key="i"
+              v-for="(tag, index) in resume.tags"
+              :key="`${tag.name}-${index}`"
               :type="tagTypeColor(tag.type)"
               size="small"
               effect="plain"
@@ -26,149 +50,132 @@
             </el-tag>
           </div>
         </div>
-      </div>
+        <div class="header-shape header-shape-1"></div>
+        <div class="header-shape header-shape-2"></div>
+      </header>
 
-      <!-- Main Content (2-column when HR mode) -->
-      <div :class="isHRMode ? 'visitor-content-hr' : 'visitor-content'">
-        <!-- Left: Resume Modules -->
-        <div class="resume-modules">
-          <!-- Education -->
-          <section v-if="resume.modules?.education?.length" class="module-section">
+      <div :class="isAiMode ? 'visitor-content-ai' : 'visitor-content'">
+        <main class="resume-modules">
+          <section
+            v-for="section in structuredSections"
+            :key="section.key"
+            class="module-section"
+          >
             <h2 class="section-title">
-              <el-icon><School /></el-icon>
-              教育经历
+              <el-icon><component :is="section.icon" /></el-icon>
+              {{ section.label }}
             </h2>
-            <div class="timeline">
-              <div v-for="(edu, i) in resume.modules.education" :key="i" class="timeline-item">
-                <div class="timeline-date">{{ edu.start_date }} ~ {{ edu.end_date || '至今' }}</div>
+
+            <div v-if="section.type === 'timeline'" class="timeline">
+              <div v-for="(item, index) in section.items" :key="index" class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-date">{{ section.dateText(item) }}</div>
                 <div class="timeline-content">
-                  <h3>{{ edu.school }}</h3>
-                  <p class="sub-info">{{ edu.degree }} | {{ edu.major }}</p>
-                  <p v-if="edu.description" class="desc">{{ edu.description }}</p>
+                  <h3>{{ section.titleText(item) }}</h3>
+                  <p v-if="section.subtitleText(item)" class="sub-info" :class="section.subtitleClass">
+                    {{ section.subtitleText(item) }}
+                  </p>
+                  <p v-if="item.description" class="desc">{{ item.description }}</p>
                 </div>
               </div>
             </div>
-          </section>
 
-          <!-- Work Experience -->
-          <section v-if="resume.modules?.work_experience?.length" class="module-section">
-            <h2 class="section-title">
-              <el-icon><OfficeBuilding /></el-icon>
-              工作经历
-            </h2>
-            <div class="timeline">
-              <div v-for="(work, i) in resume.modules.work_experience" :key="i" class="timeline-item">
-                <div class="timeline-date">{{ work.start_date }} ~ {{ work.end_date || '至今' }}</div>
-                <div class="timeline-content">
-                  <h3>{{ work.company }}</h3>
-                  <p class="sub-info highlight">{{ work.position }}</p>
-                  <p v-if="work.description" class="desc">{{ work.description }}</p>
-                </div>
-              </div>
+            <div v-else-if="section.type === 'grid'" class="project-grid">
+              <article v-for="(item, index) in section.items" :key="index" class="project-card">
+                <h3>{{ item.name }}</h3>
+                <el-tag v-if="item.role" size="small" type="warning" effect="plain">
+                  {{ item.role }}
+                </el-tag>
+                <p v-if="item.tech_stack" class="tech-stack">技术栈: {{ item.tech_stack }}</p>
+                <p v-if="item.description" class="desc">{{ item.description }}</p>
+              </article>
             </div>
-          </section>
 
-          <!-- Projects -->
-          <section v-if="resume.modules?.project?.length" class="module-section">
-            <h2 class="section-title">
-              <el-icon><FolderOpened /></el-icon>
-              项目经历
-            </h2>
-            <div class="project-grid">
-              <div v-for="(proj, i) in resume.modules.project" :key="i" class="project-card">
-                <h3>{{ proj.name }}</h3>
-                <el-tag v-if="proj.role" size="small" type="warning" effect="plain">{{ proj.role }}</el-tag>
-                <p v-if="proj.tech_stack" class="tech-stack">技术栈: {{ proj.tech_stack }}</p>
-                <p v-if="proj.description" class="desc">{{ proj.description }}</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Skills -->
-          <section v-if="resume.modules?.skill?.length" class="module-section">
-            <h2 class="section-title">
-              <el-icon><TrendCharts /></el-icon>
-              技能清单
-            </h2>
-            <div class="skills-grid">
-              <div v-for="(skill, i) in resume.modules.skill" :key="i" class="skill-item">
+            <div v-else-if="section.type === 'skills'" class="skills-grid">
+              <div v-for="(item, index) in section.items" :key="index" class="skill-item">
                 <div class="skill-header">
-                  <span class="skill-name">{{ skill.name }}</span>
-                  <span class="skill-level">{{ skill.level }}%</span>
+                  <span class="skill-name">{{ item.name }}</span>
+                  <span class="skill-level">{{ item.level }}%</span>
                 </div>
                 <el-progress
-                  :percentage="skill.level"
+                  :percentage="item.level"
                   :stroke-width="8"
                   :show-text="false"
-                  :color="getSkillColor(skill.level)"
+                  :color="getSkillColor(item.level)"
                 />
-                <span class="skill-category">{{ skill.category }}</span>
+                <span class="skill-category">{{ item.category }}</span>
               </div>
             </div>
           </section>
 
-          <!-- Certificate / Award / Language -->
           <section
-            v-for="mod in textModules"
+            v-for="mod in textSections"
             :key="mod.key"
             class="module-section"
-            v-if="resume.modules?.[mod.key]"
           >
             <h2 class="section-title">
               <el-icon><component :is="mod.icon" /></el-icon>
               {{ mod.label }}
             </h2>
-            <div class="text-content">{{ resume.modules[mod.key] }}</div>
+            <div class="text-content">{{ mod.value }}</div>
           </section>
 
-          <!-- Download section -->
           <section v-if="resume.visitor_allow_download" class="module-section download-section">
-            <el-button type="primary" icon="Download" @click="downloadPdf" :loading="downloading">
+            <el-button type="primary" icon="Download" :loading="downloading" @click="downloadPdf">
               下载PDF简历
             </el-button>
           </section>
-        </div>
+        </main>
 
-        <!-- Right: HR AI Panel (only in HR mode) -->
-        <div v-if="isHRMode" class="hr-ai-panel">
+        <aside v-if="isAiMode" class="ai-panel">
           <div class="ai-panel-header">
-            <el-icon><ChatDotRound /></el-icon>
-            <span>HR AI助手</span>
+            <div class="ai-panel-header-left">
+              <div class="ai-panel-icon">
+                <el-icon><ChatDotRound /></el-icon>
+              </div>
+              <span>AI助手</span>
+            </div>
             <el-tag v-if="aiRemaining > 0" type="success" size="small">可用</el-tag>
             <el-tag v-else type="danger" size="small">已用尽</el-tag>
           </div>
 
-          <!-- Chat messages -->
           <div class="ai-chat-messages" ref="chatMessagesRef">
             <div v-if="chatMessages.length === 0" class="ai-empty">
-              <el-icon :size="40" color="#c0c4cc"><ChatDotRound /></el-icon>
-              <p>向AI助手提问关于该候选人的问题</p>
-              <p class="ai-hint">例如："该候选人适合哪些岗位？""技能优势是什么？"</p>
+              <div class="ai-empty-icon">
+                <el-icon :size="36" color="#409eff"><ChatDotRound /></el-icon>
+              </div>
+              <p class="ai-empty-title">向 AI 助手提问关于这份简历的问题</p>
+              <p class="ai-hint">例如：这位候选人适合哪些岗位？</p>
             </div>
-            <div v-for="(msg, i) in chatMessages" :key="i" :class="['chat-msg', msg.role]">
-              <div class="msg-avatar">
-                <el-icon v-if="msg.role === 'user'" color="#409eff"><User /></el-icon>
-                <el-icon v-else color="#67c23a"><Monitor /></el-icon>
+
+            <div v-for="(msg, index) in chatMessages" :key="index" :class="['chat-msg', msg.role]">
+              <div class="msg-avatar" :class="msg.role">
+                <el-icon v-if="msg.role === 'user'"><User /></el-icon>
+                <el-icon v-else><Monitor /></el-icon>
               </div>
               <div class="msg-content">
                 <div class="msg-text" v-html="msg.text"></div>
               </div>
             </div>
+
             <div v-if="aiLoading" class="chat-msg assistant">
-              <div class="msg-avatar"><el-icon color="#67c23a"><Monitor /></el-icon></div>
-              <div class="msg-content"><div class="msg-text typing">思考中...</div></div>
+              <div class="msg-avatar assistant"><el-icon><Monitor /></el-icon></div>
+              <div class="msg-content">
+                <div class="msg-text typing">
+                  <div class="typing-dots"><span></span><span></span><span></span></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Input area -->
           <div class="ai-input-area">
             <el-input
               v-model="chatInput"
               type="textarea"
               :rows="2"
-              placeholder="输入您的问题，如"该候选人适合哪些岗位？""
+              placeholder="输入你的问题，例如：这位候选人适合哪些岗位？"
               :disabled="aiRemaining <= 0 || aiLoading"
-              @keydown.enter.ctrl="sendChat"
+              @keydown.enter.ctrl.prevent="sendChat"
             />
             <div class="ai-input-actions">
               <el-button
@@ -183,14 +190,13 @@
             </div>
           </div>
 
-          <!-- Polish section -->
           <div class="ai-polish-section">
             <el-divider>文本润色</el-divider>
             <el-input
               v-model="polishInput"
               type="textarea"
               :rows="3"
-              placeholder="粘贴简历片段，AI将优化表达..."
+              placeholder="粘贴简历片段，AI 将优化表达。"
               :disabled="aiRemaining <= 0 || polishLoading"
             />
             <el-button
@@ -199,54 +205,40 @@
               :loading="polishLoading"
               :disabled="!polishInput.trim() || aiRemaining <= 0"
               @click="doPolish"
-              style="margin-top: 8px; width: 100%"
+              class="polish-btn"
             >
               一键润色
             </el-button>
-
-            <!-- Polish result -->
             <div v-if="polishResult" class="polish-result">
-              <h4>润色结果：</h4>
+              <h4>润色结果</h4>
               <div class="polish-text">{{ polishResult }}</div>
             </div>
           </div>
 
-          <!-- Quota exhausted message -->
           <div v-if="aiRemaining <= 0" class="quota-exhausted">
             <el-alert
               type="warning"
               :closable="false"
               show-icon
               title="配额已用尽"
-              description="AI调用次数已达上限，请联系招聘方或管理员申请更多次数。"
+              description="AI 调用次数已达上限。"
             />
           </div>
-        </div>
+        </aside>
       </div>
 
-      <!-- Footer watermark -->
-      <div class="visitor-footer">
+      <footer class="visitor-footer">
         <p>仅供展示，禁止转载 | 智能简历管理系统</p>
-      </div>
-    </template>
-
-    <!-- Error state -->
-    <template v-if="error && !loading">
-      <div class="error-page">
-        <el-icon :size="64" color="#c0c4cc"><WarningFilled /></el-icon>
-        <h2>访问受限</h2>
-        <p>{{ error }}</p>
-        <el-button type="primary" @click="$router.push('/login')">前往登录</el-button>
-      </div>
+      </footer>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { visitorApi } from '@/api'
 import { ElMessage } from 'element-plus'
+import { visitorApi } from '@/api'
 
 const route = useRoute()
 const resume = ref(null)
@@ -254,18 +246,12 @@ const loading = ref(false)
 const error = ref('')
 const downloading = ref(false)
 
-// HR mode state
-const isHRMode = computed(() => route.query.role === 'hr' && resume.value?.hr_enabled)
 const aiRemaining = ref(0)
 const aiTotal = ref(0)
-
-// Chat state
 const chatMessages = ref([])
 const chatInput = ref('')
 const aiLoading = ref(false)
 const chatMessagesRef = ref(null)
-
-// Polish state
 const polishInput = ref('')
 const polishResult = ref('')
 const polishLoading = ref(false)
@@ -275,6 +261,57 @@ const textModules = [
   { key: 'award', label: '获奖荣誉', icon: 'Trophy' },
   { key: 'language', label: '语言能力', icon: 'ChatLineRound' },
 ]
+
+const structuredSections = computed(() => {
+  const modules = resume.value?.modules || {}
+  return [
+    {
+      key: 'education',
+      label: '教育经历',
+      icon: 'School',
+      type: 'timeline',
+      items: modules.education || [],
+      titleText: (item) => item.school,
+      subtitleText: (item) => [item.degree, item.major].filter(Boolean).join(' | '),
+      subtitleClass: '',
+      dateText: (item) => `${item.start_date || ''} ~ ${item.end_date || '至今'}`,
+    },
+    {
+      key: 'work_experience',
+      label: '工作经历',
+      icon: 'OfficeBuilding',
+      type: 'timeline',
+      items: modules.work_experience || [],
+      titleText: (item) => item.company,
+      subtitleText: (item) => item.position,
+      subtitleClass: 'highlight',
+      dateText: (item) => `${item.start_date || ''} ~ ${item.end_date || '至今'}`,
+    },
+    {
+      key: 'project',
+      label: '项目经历',
+      icon: 'FolderOpened',
+      type: 'grid',
+      items: modules.project || [],
+    },
+    {
+      key: 'skill',
+      label: '技能清单',
+      icon: 'TrendCharts',
+      type: 'skills',
+      items: modules.skill || [],
+    },
+  ].filter((section) => section.items.length > 0)
+})
+
+const textSections = computed(() => {
+  const modules = resume.value?.modules || {}
+  return textModules
+    .map((mod) => ({ ...mod, value: modules[mod.key] }))
+    .filter((mod) => Boolean(mod.value))
+})
+
+const isAiMode = computed(() => route.query.role === 'ai' && resume.value?.visitor_ai_mode_enabled)
 
 function tagTypeColor(type) {
   const colors = { skill: '', project: 'success', certificate: 'warning', award: 'danger', language: 'info' }
@@ -306,16 +343,16 @@ async function sendChat() {
 
   try {
     const token = route.params.token
-    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'hr' }
+    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'ai' }
     const res = await visitorApi.aiChat(token, params, { query, call_type: 'chat' })
-    chatMessages.value.push({ role: 'assistant', text: res.response || '无回复' })
+    chatMessages.value.push({ role: 'assistant', text: res.response || '暂无回复' })
     aiRemaining.value = res.remaining ?? aiRemaining.value
   } catch (e) {
     if (e.response?.status === 429) {
       aiRemaining.value = 0
-      chatMessages.value.push({ role: 'assistant', text: '配额已用尽，无法继续调用AI服务' })
+      chatMessages.value.push({ role: 'assistant', text: '配额已用尽，无法继续调用 AI 服务' })
     } else {
-      chatMessages.value.push({ role: 'assistant', text: 'AI服务调用失败，请稍后重试' })
+      chatMessages.value.push({ role: 'assistant', text: 'AI 服务调用失败，请稍后重试' })
     }
   } finally {
     aiLoading.value = false
@@ -330,7 +367,7 @@ async function doPolish() {
 
   try {
     const token = route.params.token
-    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'hr' }
+    const params = { sig: route.query.sig || '', expires: route.query.expires || 0, role: 'ai' }
     const res = await visitorApi.aiChat(token, params, { query: polishInput.value.trim(), call_type: 'polish' })
     polishResult.value = res.polished_text || res.response || '润色失败'
     aiRemaining.value = res.remaining ?? aiRemaining.value
@@ -347,6 +384,7 @@ async function doPolish() {
 }
 
 async function downloadPdf() {
+  if (!resume.value?.username) return
   downloading.value = true
   try {
     const token = route.params.token
@@ -357,7 +395,7 @@ async function downloadPdf() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = resume.value.username + '_resume.pdf'
+    a.download = `${resume.value.username}_resume.pdf`
     a.click()
     window.URL.revokeObjectURL(url)
     ElMessage.success('下载成功')
@@ -382,7 +420,7 @@ onMounted(async () => {
     }
     const data = await visitorApi.getResume(token, params)
     resume.value = data
-    if (data.hr_enabled) {
+    if (data.visitor_ai_mode_enabled) {
       aiRemaining.value = data.ai_remaining || 0
       aiTotal.value = data.ai_quota || 0
     }
@@ -406,8 +444,7 @@ onMounted(async () => {
   background: #f5f7fa;
 }
 
-/* HR Quota Banner */
-.hr-quota-banner {
+.ai-quota-banner {
   background: linear-gradient(135deg, #ecf5ff 0%, #e8f4fd 100%);
   border-bottom: 1px solid #d9ecff;
   padding: 10px 20px;
@@ -421,7 +458,7 @@ onMounted(async () => {
   z-index: 100;
 }
 
-.hr-quota-banner strong {
+.ai-quota-banner strong {
   font-size: 18px;
   color: #303133;
 }
@@ -429,12 +466,39 @@ onMounted(async () => {
 .visitor-header {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   color: #fff;
-  padding: 48px 20px;
+  padding: 56px 20px 48px;
+  position: relative;
+  overflow: hidden;
 }
 
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.header-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.header-shape-1 {
+  width: 300px;
+  height: 300px;
+  background: #409eff;
+  top: -80px;
+  right: -60px;
+}
+
+.header-shape-2 {
+  width: 200px;
+  height: 200px;
+  background: #67c23a;
+  bottom: -60px;
+  left: 10%;
 }
 
 .resume-title {
@@ -454,6 +518,7 @@ onMounted(async () => {
   line-height: 1.8;
   color: #e0e0e0;
   margin-bottom: 16px;
+  max-width: 700px;
 }
 
 .resume-tags {
@@ -462,18 +527,18 @@ onMounted(async () => {
   gap: 6px;
 }
 
-/* Standard visitor layout */
-.visitor-content {
-  max-width: 800px;
+.visitor-content,
+.visitor-content-ai {
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px 20px;
 }
 
-/* HR 2-column layout */
-.visitor-content-hr {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 32px 20px;
+.visitor-content {
+  max-width: 800px;
+}
+
+.visitor-content-ai {
   display: flex;
   gap: 24px;
   align-items: flex-start;
@@ -484,13 +549,12 @@ onMounted(async () => {
   min-width: 0;
 }
 
-/* HR AI Panel */
-.hr-ai-panel {
+.ai-panel {
   width: 420px;
   min-width: 380px;
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 60px;
   max-height: calc(100vh - 80px);
@@ -502,13 +566,30 @@ onMounted(async () => {
 .ai-panel-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
+  justify-content: space-between;
+  padding: 14px 20px;
   border-bottom: 1px solid #ebeef5;
-  font-size: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%);
+}
+
+.ai-panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
   font-weight: 600;
   color: #303133;
-  background: #fafafa;
+}
+
+.ai-panel-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #409eff, #337ecc);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ai-chat-messages {
@@ -521,18 +602,32 @@ onMounted(async () => {
 
 .ai-empty {
   text-align: center;
-  padding: 40px 20px;
+  padding: 32px 20px;
   color: #909399;
 }
 
-.ai-empty p {
-  margin-top: 8px;
+.ai-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ecf5ff 0%, #e0edff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.ai-empty-title {
+  margin: 0 0 4px;
   font-size: 14px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .ai-hint {
-  font-size: 12px !important;
-  color: #c0c4cc !important;
+  font-size: 12px;
+  color: #c0c4cc;
+  margin: 0;
 }
 
 .chat-msg {
@@ -549,11 +644,19 @@ onMounted(async () => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f0f2f5;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #fff;
+}
+
+.msg-avatar.user {
+  background: linear-gradient(135deg, #409eff, #337ecc);
+}
+
+.msg-avatar.assistant {
+  background: linear-gradient(135deg, #67c23a, #529b2e);
 }
 
 .msg-content {
@@ -569,7 +672,7 @@ onMounted(async () => {
 }
 
 .chat-msg.user .msg-text {
-  background: #409eff;
+  background: linear-gradient(135deg, #409eff, #337ecc);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -580,9 +683,22 @@ onMounted(async () => {
   border-bottom-left-radius: 4px;
 }
 
-.msg-text.typing {
-  color: #909399;
+.typing-dots {
+  display: flex;
+  gap: 5px;
+  padding: 4px 0;
 }
+
+.typing-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a0a3b1;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
 
 .ai-input-area {
   padding: 12px 16px;
@@ -597,6 +713,11 @@ onMounted(async () => {
 
 .ai-polish-section {
   padding: 0 16px 16px;
+}
+
+.polish-btn {
+  margin-top: 8px;
+  width: 100%;
 }
 
 .polish-result {
@@ -624,13 +745,12 @@ onMounted(async () => {
   padding: 12px 16px;
 }
 
-/* Module sections */
 .module-section {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .section-title {
@@ -645,16 +765,43 @@ onMounted(async () => {
   border-bottom: 2px solid #409eff;
 }
 
-/* Timeline */
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, #409eff 0%, #d9ecff 100%);
+  border-radius: 1px;
 }
 
 .timeline-item {
   display: flex;
   gap: 20px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -20px;
+  top: 22px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #409eff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #409eff;
+  z-index: 1;
 }
 
 .timeline-date {
@@ -688,7 +835,6 @@ onMounted(async () => {
   white-space: pre-wrap;
 }
 
-/* Project grid */
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -697,7 +843,7 @@ onMounted(async () => {
 
 .project-card {
   border: 1px solid #ebeef5;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px;
 }
 
@@ -712,7 +858,6 @@ onMounted(async () => {
   margin: 6px 0;
 }
 
-/* Skills */
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -745,7 +890,6 @@ onMounted(async () => {
   color: #c0c4cc;
 }
 
-/* Text content */
 .text-content {
   white-space: pre-wrap;
   line-height: 1.8;
@@ -753,12 +897,10 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-/* Download */
 .download-section {
   text-align: center;
 }
 
-/* Footer */
 .visitor-footer {
   text-align: center;
   padding: 20px;
@@ -768,7 +910,84 @@ onMounted(async () => {
   background: #fff;
 }
 
-/* Error page */
+.skeleton-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+
+.skeleton-header {
+  padding: 40px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+
+.skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  height: 32px;
+  width: 60%;
+  margin-bottom: 12px;
+}
+
+.skeleton-subtitle {
+  height: 16px;
+  width: 40%;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 80%;
+  opacity: 0.3;
+}
+
+.skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skeleton-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.skeleton-card-title {
+  height: 20px;
+  width: 40%;
+  margin-bottom: 16px;
+}
+
+.skeleton-card-text {
+  height: 14px;
+  width: 90%;
+  margin-bottom: 10px;
+}
+
+.skeleton-card-text.short {
+  width: 60%;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .error-page {
   display: flex;
   flex-direction: column;
@@ -788,12 +1007,12 @@ onMounted(async () => {
   text-align: center;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
-  .visitor-content-hr {
+  .visitor-content-ai {
     flex-direction: column;
   }
-  .hr-ai-panel {
+
+  .ai-panel {
     width: 100%;
     min-width: auto;
     position: static;
@@ -805,19 +1024,24 @@ onMounted(async () => {
   .visitor-header {
     padding: 32px 16px;
   }
+
   .resume-title {
     font-size: 24px;
   }
+
   .timeline-item {
     flex-direction: column;
     gap: 4px;
   }
+
   .timeline-date {
     min-width: auto;
   }
+
   .project-grid {
     grid-template-columns: 1fr;
   }
+
   .skills-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }

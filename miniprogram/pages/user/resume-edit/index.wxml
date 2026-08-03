@@ -1,0 +1,219 @@
+<view class="page resume-edit-page">
+  <view class="card hero-card surface">
+    <view class="header-row">
+      <view class="header-copy">
+        <view class="title">{{resume ? '编辑简历' : '创建简历'}}</view>
+        <view class="sub">统一维护基础信息、教育经历、工作经历、项目和技能。</view>
+      </view>
+      <t-button wx:if="{{resume}}" variant="outline" shape="round" icon="browse" bind:tap="goDetail">详情</t-button>
+    </view>
+  </view>
+
+  <view class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">基础信息</view>
+        <view class="section-subtitle">标题与简介会出现在对外展示中。</view>
+      </view>
+      <t-tag theme="primary" variant="light" shape="round" size="small">{{resumeId ? '已创建' : '待创建'}}</t-tag>
+    </view>
+
+    <view class="form-stack t-mt-4">
+      <view class="field-row">
+        <text class="field-label">标题</text>
+        <view class="field-shell {{titleFocused ? 'is-focused' : ''}}">
+          <t-input
+            t-class="field-input"
+            borderless="{{true}}"
+            clearable="{{true}}"
+            clearTrigger="always"
+            placeholder="请输入简历标题"
+            value="{{form.title}}"
+            bind:change="onTitleInput"
+            bind:focus="onTitleFocus"
+            bind:blur="onTitleBlur"
+          />
+        </view>
+      </view>
+
+      <view class="field-row">
+        <text class="field-label">简介</text>
+        <view class="field-shell field-shell-textarea {{summaryFocused ? 'is-focused' : ''}}">
+          <t-textarea
+            t-class="field-textarea"
+            bordered="{{false}}"
+            autosize="{{true}}"
+            indicator="{{true}}"
+            placeholder="请输入简历简介"
+            value="{{form.summary}}"
+            bind:change="onkummaryInput"
+            bind:focus="onkummaryFocus"
+            bind:blur="onkummaryBlur"
+          />
+        </view>
+      </view>
+
+      <t-button block="{{true}}" theme="primary" size="large" shape="round" loading="{{loading}}" disabled="{{loading}}" bind:tap="saveResume">
+        保存简历
+      </t-button>
+    </view>
+  </view>
+
+  <view class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">教育经历</view>
+        <view class="section-subtitle">{{educations.length}} 条记录</view>
+      </view>
+      <t-button variant="outline" shape="round" size="small" icon="add" data-type="education" bind:tap="showAddkubItem">新增</t-button>
+    </view>
+
+    <view wx:if="{{educations.length}}" class="item-list t-mt-4">
+      <view class="sub-item" wx:for="{{educations}}" wx:for-item="row" wx:key="id">
+        <view class="sub-item-head">
+          <view class="sub-copy">
+            <text class="sub-name">{{row.school || '填写学校'}}</text>
+            <text class="sub-desc">{{row.major || '填写专业'}} · {{row.degree || '填写学历'}}</text>
+          </view>
+          <t-tag theme="primary" variant="light" size="small">{{row.start_date || '-'}} - {{row.end_date || '至今'}}</t-tag>
+        </view>
+        <text wx:if="{{row.description}}" class="sub-text">{{row.description}}</text>
+        <view class="sub-actions">
+          <t-button size="small" variant="outline" shape="round" icon="edit" data-type="education" data-id="{{row.id}}" bind:tap="editkubItem">编辑</t-button>
+          <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-type="education" data-id="{{row.id}}" bind:tap="deletekubItem">删除</t-button>
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="暂无教育经历" />
+  </view>
+
+  <view class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">工作经历</view>
+        <view class="section-subtitle">{{workExperiences.length}} 条记录</view>
+      </view>
+      <t-button variant="outline" shape="round" size="small" icon="add" data-type="work" bind:tap="showAddkubItem">新增</t-button>
+    </view>
+
+    <view wx:if="{{workExperiences.length}}" class="item-list t-mt-4">
+      <view class="sub-item" wx:for="{{workExperiences}}" wx:for-item="row" wx:key="id">
+        <view class="sub-item-head">
+          <view class="sub-copy">
+            <text class="sub-name">{{row.company || '填写公司'}}</text>
+            <text class="sub-desc">{{row.position || '填写职位'}}</text>
+          </view>
+          <t-tag theme="primary" variant="light" size="small">{{row.start_date || '-'}} - {{row.end_date || '至今'}}</t-tag>
+        </view>
+        <text wx:if="{{row.description}}" class="sub-text">{{row.description}}</text>
+        <view class="sub-actions">
+          <t-button size="small" variant="outline" shape="round" icon="edit" data-type="work" data-id="{{row.id}}" bind:tap="editkubItem">编辑</t-button>
+          <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-type="work" data-id="{{row.id}}" bind:tap="deletekubItem">删除</t-button>
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="暂无工作经历" />
+  </view>
+
+  <view class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">项目经历</view>
+        <view class="section-subtitle">{{projects.length}} 条记录</view>
+      </view>
+      <t-button variant="outline" shape="round" size="small" icon="add" data-type="project" bind:tap="showAddkubItem">新增</t-button>
+    </view>
+
+    <view wx:if="{{projects.length}}" class="item-list t-mt-4">
+      <view class="sub-item" wx:for="{{projects}}" wx:for-item="row" wx:key="id">
+        <view class="sub-item-head">
+          <view class="sub-copy">
+            <text class="sub-name">{{row.name || '填写项目名称'}}</text>
+            <text class="sub-desc">{{row.role || '填写角色'}} · {{row.tech_stack || '填写技术栈'}}</text>
+          </view>
+          <t-tag theme="primary" variant="light" size="small">{{row.start_date || '-'}} - {{row.end_date || '至今'}}</t-tag>
+        </view>
+        <text wx:if="{{row.description}}" class="sub-text">{{row.description}}</text>
+        <view class="sub-actions">
+          <t-button size="small" variant="outline" shape="round" icon="edit" data-type="project" data-id="{{row.id}}" bind:tap="editkubItem">编辑</t-button>
+          <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-type="project" data-id="{{row.id}}" bind:tap="deletekubItem">删除</t-button>
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="暂无项目经历" />
+  </view>
+
+  <view class="card surface section-card">
+    <view class="section-head">
+      <view>
+        <view class="section-title">技能</view>
+        <view class="section-subtitle">{{skills.length}} 条记录</view>
+      </view>
+      <t-button variant="outline" shape="round" size="small" icon="add" data-type="skill" bind:tap="showAddkubItem">新增</t-button>
+    </view>
+
+    <view wx:if="{{skills.length}}" class="item-list t-mt-4">
+      <view class="sub-item" wx:for="{{skills}}" wx:for-item="row" wx:key="id">
+        <view class="sub-item-head">
+          <view class="sub-copy">
+            <text class="sub-name">{{row.name || '填写技能'}}</text>
+            <text class="sub-desc">{{row.category || '技能'}}</text>
+          </view>
+          <t-tag theme="primary" variant="light" size="small">{{row.level || 0}}%</t-tag>
+        </view>
+        <view class="sub-actions">
+          <t-button size="small" variant="outline" shape="round" icon="edit" data-type="skill" data-id="{{row.id}}" bind:tap="editkubItem">编辑</t-button>
+          <t-button size="small" theme="danger" variant="outline" shape="round" icon="delete" data-type="skill" data-id="{{row.id}}" bind:tap="deletekubItem">删除</t-button>
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="暂无技能" />
+  </view>
+
+  <view class="modal {{showkubForm ? 'modal-show' : ''}}">
+    <view class="modal-content surface" wx:if="{{showkubForm}}">
+      <text class="modal-title">{{subFormData.id ? '编辑' : '新增'}}{{subFormType === 'education' ? '教育经历' : subFormType === 'work' ? '工作经历' : subFormType === 'project' ? '项目经历' : '技能'}}</text>
+
+      <view class="form-stack">
+        <block wx:if="{{subFormType == 'education'}}">
+          <t-input label="学校" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入学校" value="{{subFormData.school}}" data-field="school" bind:change="subFormInput" />
+          <t-input label="学历" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入学历" value="{{subFormData.degree}}" data-field="degree" bind:change="subFormInput" />
+          <t-input label="专业" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入专业" value="{{subFormData.major}}" data-field="major" bind:change="subFormInput" />
+          <t-input label="开始时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.start_date}}" data-field="start_date" bind:change="subFormInput" />
+          <t-input label="结束时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.end_date}}" data-field="end_date" bind:change="subFormInput" />
+          <t-textarea bordered="{{false}}" autosize="{{true}}" indicator="{{true}}" placeholder="请输入补充说明" value="{{subFormData.description}}" data-field="description" bind:change="subFormInput" />
+        </block>
+
+        <block wx:elif="{{subFormType == 'work'}}">
+          <t-input label="公司" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入公司" value="{{subFormData.company}}" data-field="company" bind:change="subFormInput" />
+          <t-input label="职位" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入职位" value="{{subFormData.position}}" data-field="position" bind:change="subFormInput" />
+          <t-input label="开始时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.start_date}}" data-field="start_date" bind:change="subFormInput" />
+          <t-input label="结束时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.end_date}}" data-field="end_date" bind:change="subFormInput" />
+          <t-textarea bordered="{{false}}" autosize="{{true}}" indicator="{{true}}" placeholder="请输入工作描述" value="{{subFormData.description}}" data-field="description" bind:change="subFormInput" />
+        </block>
+
+        <block wx:elif="{{subFormType == 'project'}}">
+          <t-input label="项目名称" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入项目名称" value="{{subFormData.name}}" data-field="name" bind:change="subFormInput" />
+          <t-input label="角色" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入角色" value="{{subFormData.role}}" data-field="role" bind:change="subFormInput" />
+          <t-input label="技术栈" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入技术栈" value="{{subFormData.tech_stack}}" data-field="tech_stack" bind:change="subFormInput" />
+          <t-input label="开始时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.start_date}}" data-field="start_date" bind:change="subFormInput" />
+          <t-input label="结束时间" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="YYYY-MM" value="{{subFormData.end_date}}" data-field="end_date" bind:change="subFormInput" />
+          <t-textarea bordered="{{false}}" autosize="{{true}}" indicator="{{true}}" placeholder="请输入项目描述" value="{{subFormData.description}}" data-field="description" bind:change="subFormInput" />
+        </block>
+
+        <block wx:elif="{{subFormType == 'skill'}}">
+          <t-input label="技能名称" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入技能名称" value="{{subFormData.name}}" data-field="name" bind:change="subFormInput" />
+          <t-input label="熟练度" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="0 - 100" value="{{subFormData.level}}" data-field="level" bind:change="subFormInput" />
+          <t-input label="分类" borderless="{{true}}" clearable="{{true}}" clearTrigger="always" placeholder="请输入分类" value="{{subFormData.category}}" data-field="category" bind:change="subFormInput" />
+        </block>
+
+        <view class="modal-actions t-mt-4">
+          <t-button variant="outline" shape="round" bind:tap="hidekubForm">取消</t-button>
+          <t-button theme="primary" shape="round" bind:tap="savekubItem">保存</t-button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <user-bottom-nav active="edit"></user-bottom-nav>
+</view>

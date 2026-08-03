@@ -1,5 +1,5 @@
 ﻿const fs = require('fs');
-const html = <!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -89,6 +89,5 @@ const html = <!DOCTYPE html>
 </div>
 {% endfor %}
 </body>
-</html>;
+</html>`;
 fs.writeFileSync(process.argv[1], html, 'utf8');
-console.log('template written');

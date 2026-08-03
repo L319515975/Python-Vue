@@ -1,0 +1,45 @@
+<view class="page admin-log-page">
+  <view class="card page-head surface">
+    <view>
+      <view class="title">审计日志</view>
+      <view class="sub">追踪管理员操作，保留关键变更轨迹。</view>
+    </view>
+    <t-tag theme="primary" variant="light" shape="round" size="small">{{logs.length}} 条</t-tag>
+  </view>
+
+  <view class="card search-shell surface">
+    <view class="search-bar">
+      <t-input
+        class="search-input"
+        borderless="{{true}}"
+        clearable="{{true}}"
+        clearTrigger="always"
+        prefixIcon="search"
+        placeholder="按动作筛选，例如 user_create"
+        value="{{searchAction}}"
+        bind:change="onActionInput"
+      />
+      <t-button theme="primary" variant="outline" shape="round" icon="search" bind:tap="loadLogs">筛选</t-button>
+    </view>
+    <view class="field-note t-mt-2">支持按动作关键字检索最近 100 条记录。</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-panel">
+    <t-loading loading="{{true}}" text="正在加载审计日志" />
+  </view>
+
+  <t-empty wx:elif="{{logs.length === 0}}" description="暂无审计日志" />
+
+  <view wx:else class="list">
+    <view class="card log-card surface" wx:for="{{logs}}" wx:for-item="item" wx:key="id">
+      <view class="log-head">
+        <view class="item-info">
+          <text class="log-action">{{item.action_display || item.action || '-'}}</text>
+          <text class="item-desc">{{item.detail || '暂无详情'}}</text>
+        </view>
+        <t-tag theme="primary" variant="light" size="small">{{item.admin_user || '-'}}</t-tag>
+      </view>
+      <view class="log-meta">{{item.created_at || '-'}} · {{item.ip_address || '-'}}</view>
+    </view>
+  </view>
+</view>

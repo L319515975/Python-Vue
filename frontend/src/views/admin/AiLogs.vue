@@ -1,12 +1,23 @@
-﻿<template>
+<!--
+  AI 日志管理页面 AiLogs.vue —— 管理员查看 AI 功能的使用日志。
+
+  功能：
+  1. 查询日志：记录用户的 AI 对话（问了什么、AI 回答了什么）
+  2. 润色日志：记录文本润色操作（原文和润色结果对比）
+  3. 归类日志：记录文件自动分类的结果
+
+  使用 el-tabs 组件实现三个标签页切换。
+-->
+<template>
   <div class="ai-logs">
     <el-card>
       <template #header>
         <span>AI助手日志管理</span>
       </template>
 
+      <!-- 标签页切换：查询日志 / 润色日志 / 归类日志 -->
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <!-- Query Logs Tab -->
+        <!-- 查询日志标签页 -->
         <el-tab-pane label="查询日志" name="query">
           <el-table :data="queryLogs" stripe v-loading="loading">
             <el-table-column prop="id" label="ID" width="60" />
@@ -27,7 +38,7 @@
           </el-table>
         </el-tab-pane>
 
-        <!-- Polish Logs Tab -->
+        <!-- 润色日志标签页 -->
         <el-tab-pane label="润色日志" name="polish">
           <el-table :data="polishLogs" stripe v-loading="loading">
             <el-table-column prop="id" label="ID" width="60" />
@@ -56,7 +67,7 @@
           </el-table>
         </el-tab-pane>
 
-        <!-- Classification Logs Tab -->
+        <!-- 归类日志标签页 -->
         <el-tab-pane label="归类日志" name="classification">
           <el-table :data="classificationLogs" stripe v-loading="loading">
             <el-table-column prop="id" label="ID" width="60" />
@@ -68,7 +79,7 @@
                   v-for="m in (row.modules_assigned || [])"
                   :key="m"
                   size="small"
-                  style="margin-right: 4px"
+                  class="module-tag"
                 >
                   {{ moduleLabels[m] || m }}
                 </el-tag>
@@ -102,55 +113,47 @@
       />
     </el-card>
 
-    <!-- Query Detail Dialog -->
+    <!-- 查询详情弹窗 -->
     <el-dialog v-model="queryDetailVisible" title="查询详情" :width="isMobile ? '95%' : '600px'">
       <template v-if="currentQueryLog">
         <h4>用户查询:</h4>
-        <p style="background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 16px">
-          {{ currentQueryLog.query }}
-        </p>
+        <p class="detail-query-box">{{ currentQueryLog.query }}</p>
         <h4>AI回复:</h4>
-        <div style="background: #f0f9ff; padding: 12px; border-radius: 6px; white-space: pre-wrap">
-          {{ currentQueryLog.response }}
-        </div>
-        <div style="margin-top: 12px; color: #999; font-size: 13px">
+        <div class="detail-response-box">{{ currentQueryLog.response }}</div>
+        <div class="detail-meta">
           意图: {{ intentMap[currentQueryLog.intent] || currentQueryLog.intent }} | Token: {{ currentQueryLog.tokens_used }} | 时间: {{ currentQueryLog.created_at }}
         </div>
       </template>
     </el-dialog>
 
-    <!-- Polish Detail Dialog -->
+    <!-- 润色详情弹窗 -->
     <el-dialog v-model="polishDetailVisible" title="润色详情" :width="isMobile ? '95%' : '700px'">
       <template v-if="currentPolishLog">
         <el-row :gutter="16">
           <el-col :xs="24" :sm="12">
             <h4>原始文本:</h4>
-            <div style="background: #fafafa; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px">
-              {{ currentPolishLog.original_text }}
-            </div>
+            <div class="detail-original-box">{{ currentPolishLog.original_text }}</div>
           </el-col>
           <el-col :xs="24" :sm="12">
             <h4>润色结果:</h4>
-            <div style="background: #f0f9eb; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px">
-              {{ currentPolishLog.polished_text }}
-            </div>
+            <div class="detail-polished-box">{{ currentPolishLog.polished_text }}</div>
           </el-col>
         </el-row>
-        <div style="margin-top: 12px; color: #999; font-size: 13px">
+        <div class="detail-meta">
           用户: {{ currentPolishLog.username }} | 模块: {{ currentPolishLog.module_name || '-' }} | Token: {{ currentPolishLog.tokens_used }} | 时间: {{ currentPolishLog.created_at }}
         </div>
       </template>
     </el-dialog>
 
-    <!-- Classification Detail Dialog -->
+    <!-- 归类详情弹窗 -->
     <el-dialog v-model="classDetailVisible" title="归类详情" :width="isMobile ? '95%' : '600px'">
       <template v-if="currentClassLog">
         <h4>文件: {{ currentClassLog.file_name }}</h4>
         <h4 style="margin-top: 12px">归类结果:</h4>
-        <div style="background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap">
+        <div class="detail-json-box">
           {{ JSON.stringify(currentClassLog.classification_result, null, 2) }}
         </div>
-        <div style="margin-top: 12px; color: #999; font-size: 13px">
+        <div class="detail-meta">
           用户: {{ currentClassLog.username }} | 状态: {{ currentClassLog.status }} | 时间: {{ currentClassLog.created_at }}
         </div>
       </template>
@@ -159,20 +162,33 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+/**
+ * AI 日志管理逻辑。
+ *
+ * 使用 el-tabs 实现三种日志的分类查看：
+ * - 查询日志：用户与 AI 的对话记录
+ * - 润色日志：文本润色的原文和结果
+ * - 归类日志：文件上传后的自动分类结果
+ */
+import { ref, onMounted } from 'vue'
+import { useMobile } from '@/composables/useMobile'
 import { aiApi } from '@/api'
 
-const isMobile = computed(() => window.innerWidth <= 768)
-const activeTab = ref('query')
+const { isMobile } = useMobile()
+
+// 状态变量
+const activeTab = ref('query')       // 当前激活的标签页
 const loading = ref(false)
 const total = ref(0)
 const pageSize = ref(20)
 const currentPage = ref(1)
 
+// 三种日志数据
 const queryLogs = ref([])
 const polishLogs = ref([])
 const classificationLogs = ref([])
 
+// 详情弹窗状态
 const queryDetailVisible = ref(false)
 const polishDetailVisible = ref(false)
 const classDetailVisible = ref(false)
@@ -180,6 +196,7 @@ const currentQueryLog = ref(null)
 const currentPolishLog = ref(null)
 const currentClassLog = ref(null)
 
+// 意图类型中文映射
 const intentMap = {
   education: '教育背景',
   work_experience: '工作经历',
@@ -189,6 +206,7 @@ const intentMap = {
   general: '综合查询',
 }
 
+// 模块类型中文映射
 const moduleLabels = {
   education: '教育经历',
   work_experience: '工作经历',
@@ -199,6 +217,7 @@ const moduleLabels = {
   language: '语言能力',
 }
 
+/** 根据当前标签页加载对应日志数据。 */
 async function loadCurrentTab() {
   loading.value = true
   try {
@@ -221,26 +240,16 @@ async function loadCurrentTab() {
   }
 }
 
+/** 标签页切换时重置分页并重新加载数据。 */
 function handleTabChange() {
   currentPage.value = 1
   total.value = 0
   loadCurrentTab()
 }
 
-function showQueryDetail(row) {
-  currentQueryLog.value = row
-  queryDetailVisible.value = true
-}
-
-function showPolishDetail(row) {
-  currentPolishLog.value = row
-  polishDetailVisible.value = true
-}
-
-function showClassificationDetail(row) {
-  currentClassLog.value = row
-  classDetailVisible.value = true
-}
+function showQueryDetail(row) { currentQueryLog.value = row; queryDetailVisible.value = true }
+function showPolishDetail(row) { currentPolishLog.value = row; polishDetailVisible.value = true }
+function showClassificationDetail(row) { currentClassLog.value = row; classDetailVisible.value = true }
 
 onMounted(loadCurrentTab)
 </script>
@@ -252,25 +261,19 @@ onMounted(loadCurrentTab)
 }
 
 @media (max-width: 768px) {
-  .el-table {
-    font-size: 12px;
-  }
-  .el-table-column--mini {
-    width: auto !important;
-  }
-  .pagination {
-    justify-content: center;
-  }
-  .el-dialog {
-    width: 95% !important;
-  }
-  .el-row {
-    flex-direction: column;
-  }
-  .el-col {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-bottom: 12px;
-  }
+  .el-table { font-size: 12px; }
+  .el-table-column--mini { width: auto !important; }
+  .pagination { justify-content: center; }
+  .el-dialog { width: 95% !important; }
+  .el-row { flex-direction: column; }
+  .el-col { width: 100% !important; max-width: 100% !important; margin-bottom: 12px; }
 }
+
+.module-tag { margin-right: 4px; }
+.detail-query-box { background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+.detail-response-box { background: #f0f9ff; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
+.detail-meta { margin-top: 12px; color: #999; font-size: 13px; }
+.detail-original-box { background: #fafafa; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px; }
+.detail-polished-box { background: #f0f9eb; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 100px; }
+.detail-json-box { background: #f5f5f5; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
 </style>

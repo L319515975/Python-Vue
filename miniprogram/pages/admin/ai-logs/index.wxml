@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{tab === 'chat' ? 'active' : ''}}" data-tab="chat" bindtap="switchTab">AI 对话</view>
+    <view class="tab {{tab === 'polish' ? 'active' : ''}}" data-tab="polish" bindtap="switchTab">文本润色</view>
+    <view class="tab {{tab === 'classify' ? 'active' : ''}}" data-tab="classify" bindtap="switchTab">文件分类</view>
+  </view>
+  <view class="list">
+    <view class="log-item" wx:for="{{logs}}" wx:key="id">
+      <view class="log-query">{{item.query || item.original_text || item.file_name || '-'}}</view>
+      <view class="log-detail">{{item.response || item.polished_text || item.classification_result || '-'}}</view>
+      <view class="log-meta">{{item.username || '-'}} · {{item.created_at || ''}}</view>
+    </view>
+    <view wx:if="{{logs.length === 0 && !loading}}" class="empty">暂无日志</view>
+  </view>
+</view>
