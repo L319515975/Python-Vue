@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   润色结果弹窗 PolishDialog.vue —— 展示 AI 润色前后的对比。
 
   作用：让用户看到原始文本和润色后文本的对比，决定是否采纳润色结果。
@@ -216,12 +216,12 @@ function handleClose() {
 }
 
 .diff-title.polished {
-  color: #67c23a;
+  color: #16a34a;
 }
 
 /* 文本对比框 */
 .diff-box {
-  border: 1px solid #ebeef5;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   padding: 12px;
   min-height: 150px;
@@ -246,7 +246,7 @@ function handleClose() {
 /* 差异高亮样式 */
 :deep(.diff-highlight) {
   background: #fdf6ec;
-  color: #e6a23c;
+  color: #ea580c;
   padding: 1px 3px;
   border-radius: 2px;
   font-weight: 500;

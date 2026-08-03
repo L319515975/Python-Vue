@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="login-page">
     <div class="login-panel">
       <section class="brand-panel">
@@ -54,8 +54,8 @@
           <div class="login-footer">
             <el-divider>测试账号</el-divider>
             <div class="demo-accounts">
-              <el-tag class="account-tag" effect="plain" @click="fillAccount('乐福利', '123456')">
-                管理员: 乐福利 / 123456
+              <el-tag class="account-tag" effect="plain" @click="fillAccount('admin', 'admin123')">
+                管理员: admin / admin123
               </el-tag>
               <el-tag class="account-tag" type="success" effect="plain" @click="fillAccount('zhangsan', 'user123')">
                 用户: zhangsan / user123
@@ -119,8 +119,7 @@ async function handleLogin() {
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(circle at top left, rgba(64, 158, 255, 0.14), transparent 34%),
-    linear-gradient(180deg, #f5f7fa 0%, #eef2f7 100%);
+    #f5f5f7;
 }
 
 .login-panel {
@@ -134,7 +133,7 @@ async function handleLogin() {
 .brand-panel {
   padding: 40px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  background: #272729;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -145,31 +144,34 @@ async function handleLogin() {
 .brand-icon {
   width: 56px;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(210, 210, 215, 0.16);
   margin-bottom: 18px;
 }
 
 .brand-panel h1 {
   margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.2px;
 }
 
 .brand-panel p {
   margin: 14px 0 0;
   max-width: 28rem;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
+  color: #cccccc;
+  font-size: 17px;
+  line-height: 1.47;
 }
 
 .brand-points {
   margin: 24px 0 0;
   padding-left: 18px;
-  color: rgba(255, 255, 255, 0.92);
+  color: #cccccc;
   display: grid;
   gap: 10px;
 }
@@ -181,9 +183,9 @@ async function handleLogin() {
 
 .login-card {
   width: 100%;
-  border: 1px solid #ebeef5;
-  border-radius: 16px;
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e0e0e0;
+  border-radius: 18px;
+  box-shadow: none;
 }
 
 .login-header {
@@ -192,21 +194,23 @@ async function handleLogin() {
 
 .login-header h2 {
   margin: 0;
-  font-size: 20px;
-  color: #333333;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  color: #1d1d1f;
 }
 
 .login-header p {
   margin: 6px 0 0;
   font-size: 14px;
-  color: #666666;
+  color: #7a7a7a;
 }
 
 .login-btn {
   width: 100%;
   height: 44px;
-  font-size: 15px;
-  border-radius: 8px;
+  font-size: 17px;
+  border-radius: 9999px;
 }
 
 .login-footer {
@@ -242,11 +246,11 @@ async function handleLogin() {
   }
 
   .brand-panel {
-    border-radius: 14px 14px 0 0;
+    border-radius: 18px 18px 0 0;
   }
 
   .login-card {
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 18px 18px;
   }
 }
 </style>

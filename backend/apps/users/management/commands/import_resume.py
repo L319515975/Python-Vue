@@ -1,4 +1,4 @@
-"""Management command to import resume from web前端26.docx into admin account."""
+"""Management command to import test resume data into admin account."""
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from apps.resumes.models import Resume, Education, WorkExperience, Project, Skill, Tag
@@ -8,23 +8,23 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Import resume data from web前端26.docx and create admin account 乐福利/123456'
+    help = 'Import test resume data and create admin account 测试账号/Test@1234'
 
     def handle(self, *args, **options):
         # ── 1. Create or update admin user with phone as username ──
-        username = '乐福利'
-        password = '123456'
+        username = '测试账号'
+        password = 'Test@1234'
 
         admin_user, created = User.objects.get_or_create(
             username=username,
             defaults={
-                'email': '1943201663@qq.com',
-                'phone': '18772499074',
+                'email': 'test@example.com',
+                'phone': '13800000000',
                 'role': 'admin',
                 'is_staff': True,
                 'is_superuser': True,
-                'first_name': '乐',
-                'last_name': '福利',
+                'first_name': '测',
+                'last_name': '试',
             }
         )
         if created:
@@ -37,10 +37,10 @@ class Command(BaseCommand):
             admin_user.role = 'admin'
             admin_user.is_staff = True
             admin_user.is_superuser = True
-            admin_user.phone = '18772499074'
-            admin_user.email = '1943201663@qq.com'
-            admin_user.first_name = '乐'
-            admin_user.last_name = '福利'
+            admin_user.phone = '13800000000'
+            admin_user.email = 'test@example.com'
+            admin_user.first_name = '测'
+            admin_user.last_name = '试'
             admin_user.set_password(password)
             admin_user.save()
             self.stdout.write(self.style.WARNING(
@@ -51,9 +51,9 @@ class Command(BaseCommand):
         resume, created = Resume.objects.get_or_create(
             user=admin_user,
             defaults={
-                'title': 'Web前端开发工程师 - 乐福利',
+                'title': 'Web前端开发工程师 - 测试账号',
                 'summary': (
-                    'Web前端开发工程师，黄冈师范学院计算机科学与技术专业本科毕业。'
+                    'Web前端开发工程师，测试大学计算机科学与技术专业本科毕业。'
                     '熟练掌握Vue2/Vue3框架，熟悉ES6语法、Node.js、MVVM开发模式。'
                     '具备微信小程序开发与UniApp开发经验，了解前端工程化与模块化开发，'
                     '有丰富的组件化开发和数据可视化实践经验。'
@@ -76,7 +76,7 @@ class Command(BaseCommand):
         if created:
             Education.objects.create(
                 resume=resume,
-                school='黄冈师范学院',
+                school='测试大学',
                 degree='本科',
                 major='计算机科学与技术',
                 start_date=date(2018, 9, 1),
@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
             WorkExperience.objects.create(
                 resume=resume,
-                company='武汉品致汽车技术有限公司',
+                company='测试科技有限公司A',
                 position='Web前端开发',
                 start_date=date(2024, 6, 1),
                 description=(
@@ -104,7 +104,7 @@ class Command(BaseCommand):
             )
             WorkExperience.objects.create(
                 resume=resume,
-                company='安徽万链科技公司',
+                company='测试科技有限公司B',
                 position='Web前端开发（实习+工作）',
                 start_date=date(2022, 3, 1),
                 end_date=date(2024, 5, 31),

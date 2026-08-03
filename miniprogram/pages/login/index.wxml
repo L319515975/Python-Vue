@@ -116,7 +116,7 @@
                 content="管理员账号"
                 bind:tap="fillAdmin"
               />
-              <view class="quick-desc">乐福利 / 123456</view>
+              <view class="quick-desc">admin / admin123</view>
             </view>
             <view class="quick-item">
               <t-button

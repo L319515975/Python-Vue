@@ -120,8 +120,8 @@ Page({
 
   fillAdmin() {
     this.setData({
-      username: '乐福利',
-      password: '123456',
+      username: 'admin',
+      password: 'admin123',
       showPassword: false,
       passwordSuffix: '\u663e\u793a',
     })

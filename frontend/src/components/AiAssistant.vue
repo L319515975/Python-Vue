@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   AI 助手浮窗组件 AiAssistant.vue —— 固定在右下角的 AI 对话窗口。
 
   作用：让用户在任何页面都能与 AI 助手对话，查询简历信息或润色文本。
@@ -528,7 +528,7 @@ function handlePolishResult(polished) {
 
 .header-subtitle {
   font-size: 11px;
-  color: #909399;
+  color: #7a7a7a;
   line-height: 1.3;
 }
 

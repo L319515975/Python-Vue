@@ -1,5 +1,62 @@
 @use './element/index.scss';
 
+/* Design tokens from DESIGN.md (Apple-style system) */
+:root {
+  /* Brand & Accent */
+  --color-primary: #0066cc;
+  --color-primary-focus: #0071e3;
+  --color-primary-on-dark: #2997ff;
+
+  /* Surface */
+  --color-canvas: #ffffff;
+  --color-canvas-parchment: #f5f5f7;
+  --color-surface-pearl: #fafafc;
+  --color-surface-tile-1: #272729;
+  --color-surface-tile-2: #2a2a2c;
+  --color-surface-tile-3: #252527;
+  --color-surface-black: #000000;
+  --color-surface-chip-translucent: #d2d2d7;
+
+  /* Text */
+  --color-ink: #1d1d1f;
+  --color-body: #1d1d1f;
+  --color-body-on-dark: #ffffff;
+  --color-body-muted: #cccccc;
+  --color-ink-muted-80: #333333;
+  --color-ink-muted-48: #7a7a7a;
+
+  /* Hairlines & Borders */
+  --color-divider-soft: #f0f0f0;
+  --color-hairline: #e0e0e0;
+
+  /* Semantic aliases */
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-link: var(--color-primary);
+  --color-link-on-dark: var(--color-primary-on-dark);
+
+  /* Legacy aliases for backward compatibility */
+  --color-parchment: var(--color-canvas-parchment);
+  --color-pearl: var(--color-surface-pearl);
+  --color-tile-dark: var(--color-surface-tile-1);
+  --color-tile-dark-2: var(--color-surface-tile-2);
+  --color-tile-dark-3: var(--color-surface-tile-3);
+
+  /* Radius scale */
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* Typography */
+  --font-display: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-text: "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* Shadow */
+  --shadow-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.22);
+}
+
 html,
 body,
 #app {
@@ -9,10 +66,10 @@ body,
 body {
   margin: 0;
   font-size: 14px;
-  line-height: 1.5;
-  color: #333333;
-  background: #f5f7fa;
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  line-height: 1.47;
+  color: var(--color-ink);
+  background: var(--color-parchment);
+  font-family: var(--font-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

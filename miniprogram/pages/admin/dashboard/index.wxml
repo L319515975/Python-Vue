@@ -1,5 +1,6 @@
 <view class="page dashboard-page">
-  <view class="hero-card card surface">
+  <!-- ===== Hero Card ===== -->
+  <view class="hero-card surface">
     <view class="hero-top">
       <view class="hero-copy">
         <view class="title">管理后台</view>
@@ -13,27 +14,55 @@
         <t-icon name="setting" size="36rpx" />
       </view>
     </view>
-    <view class="hero-tip">统一查看核心数据、快速进入常用功能，并保持管理后台与登录页同一套品牌色。</view>
+    <view class="hero-tip">统一查看核心数据、快速进入常用功能</view>
   </view>
 
+  <!-- ===== My Resume Quick Action (Prominent) ===== -->
+  <view class="resume-quick-card" hover-class="resume-quick-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/user/resume-detail/index">
+    <view class="resume-quick-left">
+      <view class="resume-quick-icon">
+        <t-icon name="user" size="40rpx" />
+      </view>
+      <view class="resume-quick-copy">
+        <view class="resume-quick-title">我的简历</view>
+        <view class="resume-quick-desc">查看或编辑自己的简历</view>
+      </view>
+    </view>
+    <view class="resume-quick-right">
+      <view class="resume-quick-status">
+        <view class="status-dot"></view>
+        <text>去编辑</text>
+      </view>
+      <t-icon name="chevron-right" size="32rpx" />
+    </view>
+  </view>
+
+  <!-- ===== Stats Grid ===== -->
   <view class="stat-grid">
-    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/user-manage/index">
-      <t-icon name="user" size="40rpx" class="quick-icon" />
+    <view class="stat-item surface" hover-class="stat-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/user-manage/index">
+      <view class="stat-icon-wrap stat-icon-blue">
+        <t-icon name="user" size="36rpx" />
+      </view>
       <text class="stat-num">{{stats.userCount}}</text>
       <text class="stat-label">用户</text>
     </view>
-    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
-      <t-icon name="file" size="40rpx" class="quick-icon" />
+    <view class="stat-item surface" hover-class="stat-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
+      <view class="stat-icon-wrap stat-icon-green">
+        <t-icon name="file" size="36rpx" />
+      </view>
       <text class="stat-num">{{stats.resumeCount}}</text>
       <text class="stat-label">简历</text>
     </view>
-    <view class="stat-item surface" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
-      <t-icon name="tag" size="40rpx" class="quick-icon" />
+    <view class="stat-item surface" hover-class="stat-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
+      <view class="stat-icon-wrap stat-icon-orange">
+        <t-icon name="tag" size="36rpx" />
+      </view>
       <text class="stat-num">{{stats.tagCount}}</text>
       <text class="stat-label">标签</text>
     </view>
   </view>
 
+  <!-- ===== Quick Actions ===== -->
   <view class="section-shell surface">
     <view class="section-head">
       <view>
@@ -41,19 +70,10 @@
         <view class="section-subtitle">常用管理页</view>
       </view>
     </view>
-    <view class="quick-grid t-mt-4">
-      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/user/resume-detail/index">
-        <view class="quick-icon">
-          <t-icon name="user" size="32rpx" />
-        </view>
-        <view class="quick-copy">
-          <view class="quick-title">我的简历</view>
-          <view class="quick-desc">查看或编辑自己的简历</view>
-        </view>
-      </view>
+    <view class="quick-grid">
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/user-manage/index">
-        <view class="quick-icon">
-          <t-icon name="user" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-primary">
+          <t-icon name="user" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">用户管理</view>
@@ -61,8 +81,8 @@
         </view>
       </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/resume-manage/index">
-        <view class="quick-icon">
-          <t-icon name="file" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-green">
+          <t-icon name="file" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">简历管理</view>
@@ -70,44 +90,35 @@
         </view>
       </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/pdf-template-manage/index">
-        <view class="quick-icon">
-          <t-icon name="file" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-purple">
+          <t-icon name="file" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">PDF 模板</view>
-          <view class="quick-desc">上传、启用与管理模板</view>
+          <view class="quick-desc">上传、启用与管理</view>
         </view>
       </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/tag-manage/index">
-        <view class="quick-icon">
-          <t-icon name="tag" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-orange">
+          <t-icon name="tag" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">标签管理</view>
           <view class="quick-desc">分类标签维护</view>
         </view>
       </view>
-      <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/visitor-ai-logs/index">
-        <view class="quick-icon">
-          <t-icon name="chart-bar" size="32rpx" />
-        </view>
-        <view class="quick-copy">
-          <view class="quick-title">访客 AI 日志</view>
-          <view class="quick-desc">调用记录与结果回溯</view>
-        </view>
-      </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/ai-logs/index">
-        <view class="quick-icon">
-          <t-icon name="activity" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-blue">
+          <t-icon name="chart-bar" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">AI 日志</view>
-          <view class="quick-desc">对话、润色与分类记录</view>
+          <view class="quick-desc">对话、润色记录</view>
         </view>
       </view>
       <view class="quick-item" hover-class="quick-item-hover" hover-stay-time="80" bindtap="navTo" data-url="/pages/admin/audit-log/index">
-        <view class="quick-icon">
-          <t-icon name="file-safety" size="32rpx" />
+        <view class="quick-icon-wrap quick-icon-red">
+          <t-icon name="file-safety" size="28rpx" />
         </view>
         <view class="quick-copy">
           <view class="quick-title">审计日志</view>
@@ -117,6 +128,7 @@
     </view>
   </view>
 
+  <!-- ===== Recent AI Logs ===== -->
   <view class="section-shell surface recent-section">
     <view class="section-head">
       <view>
@@ -147,7 +159,9 @@
 
   <button class="logout-btn surface" bindtap="handleLogout">退出登录</button>
 
+  <!-- ===== AI FAB (Floating Action Button) ===== -->
   <view class="ai-fab" bindtap="toggleFloating">
+    <view class="ai-fab-pulse"></view>
     <t-icon name="chat" size="32rpx" />
   </view>
 
