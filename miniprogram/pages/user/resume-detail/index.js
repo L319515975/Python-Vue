@@ -78,6 +78,10 @@ Page({
     aiAnswer: '',
     downloadingPdf: false,
     pdfTemplates: [],
+    completionRate: 0,
+    aiPolishCount: 0,
+    promptExpanded: false,
+    aiPromptText: '你是一名资深 HR，擅长基于求职者简历给出专业的岗位匹配度分析、面试建议和表达优化建议。回答时请使用中文，结构清晰，重点突出。',
   },
 
   onLoad(options) {
@@ -102,6 +106,26 @@ Page({
 
   closeAi() {
     this.setData({ aiVisible: false })
+  },
+
+  togglePrompt() {
+    this.setData({ promptExpanded: !this.data.promptExpanded })
+  },
+
+  editPrompt() {
+    const that = this
+    wx.showModal({
+      title: '编辑 AI 提示词',
+      content: that.data.aiPromptText,
+      editable: true,
+      placeholderText: '请输入 System Prompt',
+      success: function (res) {
+        if (res.confirm && res.content) {
+          that.setData({ aiPromptText: res.content })
+          wx.showToast({ title: '已保存', icon: 'success' })
+        }
+      },
+    })
   },
 
   onAiInput(e) {
@@ -192,6 +216,8 @@ Page({
           aiQuestion: '',
           aiSubmitting: false,
           aiAnswer: '',
+          completionRate: 0,
+          aiPolishCount: 0,
           loading: false,
         })
         return
@@ -210,6 +236,11 @@ Page({
       return Object.assign({}, tag, { selected: selectedTagIds.indexOf(tag.id) >= 0 })
     })
 
+    const totalModules = Object.keys(moduleLabelMap).length
+    const enabledCount = (detail.enabled_modules || []).length
+    const completionRate = totalModules > 0 ? Math.round((enabledCount / totalModules) * 100) : 0
+    const aiPolishCount = Number(detail.ai_polish_count || detail.visitor_ai_used || 0)
+
     this.setData({
       resume: detail,
       tagList: tagList || [],
@@ -220,6 +251,8 @@ Page({
       exportModuleNames: detail.enabled_modules || [],
       visitor: this.buildVisitor(detail),
       aiAnswer: '',
+      completionRate: completionRate,
+      aiPolishCount: aiPolishCount,
       loading: false,
     })
   },

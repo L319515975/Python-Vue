@@ -1,6 +1,6 @@
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f7fbff 0%, #f6f9fb 100%);
+  background: var(--app-color-canvas-parchment);
 }
 
 .login-container {
@@ -24,7 +24,7 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #0f8bff 0%, #14b8a6 100%);
+  background: var(--app-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +33,7 @@
 }
 
 .brand-mark-text {
-  color: #ffffff;
+  color: var(--app-color-on-primary);
   font-size: 30rpx;
   font-weight: 700;
   letter-spacing: 0;
@@ -48,14 +48,14 @@
   font-size: 36rpx;
   line-height: 1.3;
   font-weight: 700;
-  color: #333333;
+  color: var(--app-color-ink-muted-80);
 }
 
 .hero-sub {
   margin-top: 12rpx;
   font-size: 24rpx;
   line-height: 1.6;
-  color: #667085;
+  color: var(--app-color-ink-muted-48);
 }
 
 .feature-row {
@@ -70,8 +70,8 @@
 }
 
 .login-card {
-  background: #ffffff;
-  border: 1rpx solid #dbe4ee;
+  background: var(--app-color-canvas);
+  border: 1rpx solid var(--app-color-hairline);
   border-radius: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
   padding: 28rpx;
@@ -88,23 +88,23 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--app-color-ink-muted-80);
   line-height: 1.35;
 }
 
 .section-sub {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #667085;
+  color: var(--app-color-ink-muted-48);
   line-height: 1.5;
 }
 
 .security-pill {
   min-height: 52rpx;
   padding: 0 18rpx;
-  border-radius: 999rpx;
-  background: #eef7ff;
-  color: #0f67d6;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-color-primary-light);
+  color: var(--app-color-primary);
   font-size: 22rpx;
   font-weight: 600;
   display: inline-flex;
@@ -133,13 +133,13 @@
 
 .field-label {
   font-size: 28rpx;
-  color: #333333;
+  color: var(--app-color-ink-muted-80);
   font-weight: 600;
 }
 
 .field-hint {
   font-size: 22rpx;
-  color: #98a2b3;
+  color: var(--td-text-color-placeholder);
 }
 
 .field-shell {
@@ -147,8 +147,8 @@
   padding: 0 20rpx;
   display: flex;
   align-items: stretch;
-  background: #ffffff;
-  border: 1rpx solid #dbe4ee;
+  background: var(--app-color-canvas);
+  border: 1rpx solid var(--app-color-hairline);
   border-radius: 18rpx;
   box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   box-sizing: border-box;
@@ -156,8 +156,8 @@
 }
 
 .field-shell.is-focused {
-  border-color: #0f8bff;
-  box-shadow: 0 0 0 4rpx rgba(15, 139, 255, 0.08);
+  border-color: var(--app-color-primary);
+  box-shadow: 0 0 0 4rpx rgba(0, 102, 204, 0.08);
 }
 
 .field-input {
@@ -167,14 +167,14 @@
   --td-input-bg-color: transparent;
   --td-input-vertical-padding: 0rpx;
   --td-input-border-color: transparent;
-  --td-input-placeholder-text-color: #cccccc;
-  --td-input-default-text-color: #333333;
-  --td-input-suffix-text-color: #0f8bff;
-  --td-input-suffix-icon-color: #98a2b3;
+  --td-input-placeholder-text-color: var(--app-color-body-muted);
+  --td-input-default-text-color: var(--app-color-ink-muted-80);
+  --td-input-suffix-text-color: var(--app-color-primary);
+  --td-input-suffix-icon-color: var(--td-text-color-placeholder);
 }
 
 .login-placeholder {
-  color: #cccccc;
+  color: var(--app-color-body-muted);
   font-size: 28rpx;
 }
 
@@ -189,7 +189,7 @@
 
 .quick-title {
   margin-bottom: 14rpx;
-  color: #333333;
+  color: var(--app-color-ink-muted-80);
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -213,14 +213,14 @@
 .quick-desc {
   font-size: 22rpx;
   line-height: 1.4;
-  color: #667085;
+  color: var(--app-color-ink-muted-48);
   padding-left: 4rpx;
 }
 
 .page-note {
   margin-top: 18rpx;
   padding: 0 4rpx;
-  color: #98a2b3;
+  color: var(--td-text-color-placeholder);
   font-size: 22rpx;
   line-height: 1.6;
 }

@@ -1,27 +1,91 @@
 :root {
-  --el-color-primary: #409eff;
-  --el-color-primary-light-3: #79bbff;
-  --el-color-primary-light-5: #a0cfff;
-  --el-color-primary-light-7: #c6e2ff;
-  --el-color-primary-light-8: #d9ecff;
-  --el-color-primary-light-9: #ecf5ff;
-  --el-color-primary-dark-2: #337ecc;
-  --el-text-color-primary: #333333;
-  --el-text-color-regular: #666666;
-  --el-text-color-secondary: #909399;
-  --el-text-color-placeholder: #cccccc;
-  --el-border-color: #dcdfe6;
-  --el-border-color-light: #e4e7ed;
-  --el-fill-color-light: #f5f7fa;
+  /* Element Plus theme aligned with DESIGN.md (Apple-style system) */
+
+  /* Brand & Accent - Action Blue (#0066cc) */
+  --el-color-primary: #0066cc;
+  --el-color-primary-light-1: #2f86d9;
+  --el-color-primary-light-2: #4c94db;
+  --el-color-primary-light-3: #6aa2e0;
+  --el-color-primary-light-4: #80b3e6;
+  --el-color-primary-light-5: #a0c8ee;
+  --el-color-primary-light-6: #b3dbf5;
+  --el-color-primary-light-7: #cce6fa;
+  --el-color-primary-light-8: #dfeefd;
+  --el-color-primary-light-9: #e6f0fa;
+  --el-color-primary-dark-2: #0052a3;
+
+  /* Text colors */
+  --el-text-color-primary: #1d1d1f;
+  --el-text-color-regular: #333333;
+  --el-text-color-secondary: #7a7a7a;
+  --el-text-color-placeholder: #a1a1a6;
+  --el-text-color-disabled: #cccccc;
+
+  /* Borders */
+  --el-border-color: #e0e0e0;
+  --el-border-color-light: #f0f0f0;
+  --el-border-color-lighter: #f0f0f0;
+  --el-border-color-extra-light: #f5f5f7;
+
+  /* Fill colors - canvas surfaces */
+  --el-fill-color: #f5f5f7;
+  --el-fill-color-light: #f5f5f7;
+  --el-fill-color-lighter: #fafafc;
+  --el-fill-color-blank: #ffffff;
+
+  /* Border radius scale matching DESIGN.md */
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 5px;
+  --el-border-radius-round: 9999px;
+  --el-border-radius-large: 18px;
+
+  /* Other */
+  --el-mask-color: rgba(0, 0, 0, 0.48);
+
+  /* Table styling aligned with DESIGN.md surfaces */
+  --el-table-border-color: #f0f0f0;
+  --el-table-header-bg-color: #fafafc;
+  --el-table-header-text-color: #1d1d1f;
+  --el-table-row-hover-bg-color: #f5f5f7;
+  --el-table-text-color: #333333;
+  --el-table-header-text-color: #1d1d1f;
 }
 
+/* Flat cards with a hairline border; shadow is reserved for product imagery */
 .el-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
 }
 
 .el-button {
   min-height: 32px;
+  transition: transform 0.12s ease;
+}
+
+/* Signature pill grammar for the primary blue CTA */
+.el-button--primary:not(.is-circle):not(.is-link) {
+  border-radius: 9999px;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.el-button:not(.is-link):not(.is-loading):active {
+  transform: scale(0.95);
+}
+
+.el-button--primary:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+.el-tag {
+  border-radius: 9999px;
+}
+
+.el-dialog,
+.el-message-box {
+  border-radius: 18px;
 }
 
 .el-input__wrapper,

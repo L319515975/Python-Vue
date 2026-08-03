@@ -1,13 +1,17 @@
-<template>
+﻿<template>
   <el-container class="layout-shell">
     <div v-if="mobileMenuVisible" class="mobile-overlay" @click="mobileMenuVisible = false"></div>
 
     <el-aside :width="asideWidth" class="layout-aside" :class="{ 'is-mobile-open': mobileMenuVisible && isMobile }">
       <div class="logo-area">
         <div class="logo-icon">
-          <el-icon :size="22" color="#fff"><Document /></el-icon>
+          <el-icon :size="20" color="#fff"><Document /></el-icon>
         </div>
-        <span v-show="!isCollapse || isMobile" class="logo-text">简历管理系统</span>
+        <span v-show="!isCollapse || isMobile" class="logo-text">ResumeAI</span>
+      </div>
+
+      <div class="menu-section-title" v-show="!isCollapse || isMobile">
+        <span>{{ isAdmin ? '管理中心' : '工作台' }}</span>
       </div>
 
       <el-menu
@@ -15,29 +19,35 @@
         :collapse="isCollapse && !isMobile"
         :router="true"
         :collapse-transition="false"
-        background-color="#0f172a"
-        text-color="#e5e7eb"
-        active-text-color="#409eff"
+        background-color="transparent"
+        text-color="rgba(255,255,255,0.56)"
+        active-text-color="#ffffff"
         class="side-menu"
         @select="mobileMenuVisible = false"
       >
-        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
-          <el-icon><component :is="item.meta?.icon || 'Document'" /></el-icon>
-          <template #title>{{ item.meta?.title }}</template>
+        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path" class="menu-item">
+          <el-icon class="menu-icon"><component :is="item.meta?.icon || 'Document'" /></el-icon>
+          <template #title>
+            <span class="menu-label">{{ item.meta?.title }}</span>
+          </template>
         </el-menu-item>
       </el-menu>
+
+      <div class="aside-footer" v-show="!isCollapse || isMobile">
+        <div class="aside-footer-text">v2.0.0</div>
+      </div>
     </el-aside>
 
     <el-container class="layout-content">
-      <el-header class="layout-header">
+      <el-header class="layout-header" height="64px">
         <div class="header-left">
           <el-icon v-if="isMobile" class="hamburger-btn" :size="20" @click="mobileMenuVisible = !mobileMenuVisible">
             <Expand />
           </el-icon>
-          <el-icon v-else class="collapse-btn" :size="20" @click="isCollapse = !isCollapse">
+          <el-icon v-else class="collapse-btn" :size="18" @click="isCollapse = !isCollapse">
             <component :is="isCollapse ? 'Expand' : 'Fold'" />
           </el-icon>
-          <el-breadcrumb separator="/">
+          <el-breadcrumb separator="/" class="header-breadcrumb">
             <el-breadcrumb-item>{{ isAdmin ? '管理后台' : '个人中心' }}</el-breadcrumb-item>
             <el-breadcrumb-item v-if="currentTitle">{{ currentTitle }}</el-breadcrumb-item>
           </el-breadcrumb>
@@ -46,9 +56,9 @@
         <div class="header-right">
           <el-dropdown trigger="click" @command="handleCommand">
             <span class="user-dropdown">
-              <el-avatar :size="32">{{ userInitial }}</el-avatar>
+              <el-avatar :size="32" class="user-avatar">{{ userInitial }}</el-avatar>
               <span class="username">{{ userStore.username || '用户' }}</span>
-              <el-icon><ArrowDown /></el-icon>
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -68,7 +78,13 @@
       </el-header>
 
       <el-main class="layout-main">
-        <router-view />
+        <div class="content-wrapper">
+          <router-view v-slot="{ Component }">
+            <transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </div>
       </el-main>
     </el-container>
 
@@ -116,8 +132,8 @@ const currentRoute = computed(() => route.path)
 const currentTitle = computed(() => route.meta?.title || '')
 const userInitial = computed(() => (userStore.username || 'U').slice(0, 1).toUpperCase())
 const asideWidth = computed(() => {
-  if (isMobile.value) return mobileMenuVisible.value ? '240px' : '0px'
-  return isCollapse.value ? '64px' : '220px'
+  if (isMobile.value) return mobileMenuVisible.value ? '248px' : '0px'
+  return isCollapse.value ? '72px' : '248px'
 })
 
 const menuItems = computed(() => {
@@ -166,35 +182,39 @@ async function handleChangePassword() {
 .layout-shell {
   height: 100vh;
   overflow: hidden;
-  background: #f5f7fa;
+  background: var(--color-canvas-parchment);
 }
 
+/* ===== Sidebar ===== */
 .layout-aside {
   height: 100vh;
-  background: #0f172a;
+  background: linear-gradient(180deg, #0f1729 0%, #1a2332 100%);
   overflow: hidden;
-  transition: width 0.24s ease;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  transition: width 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-area {
-  height: 60px;
+  height: 64px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0052a3 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
 }
 
 .logo-text {
@@ -202,54 +222,114 @@ async function handleChangePassword() {
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.menu-section-title {
+  padding: 20px 20px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.32);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .side-menu {
-  border-right: none;
+  flex: 1;
+  border-right: none !important;
+  overflow-y: auto;
+  padding: 8px 12px;
 }
 
 .side-menu :deep(.el-menu-item) {
   height: 44px;
-  margin: 4px 8px;
+  margin: 2px 0;
   border-radius: 8px;
+  transition: all 0.2s ease-out;
+}
+
+.side-menu :deep(.el-menu-item:hover) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
 }
 
 .side-menu :deep(.el-menu-item.is-active) {
-  background: rgba(64, 158, 255, 0.16);
+  background: var(--color-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.35);
 }
 
+.side-menu :deep(.el-menu-item.is-active .menu-icon) {
+  color: #fff;
+}
+
+.menu-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.aside-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.aside-footer-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* ===== Content Area ===== */
 .layout-content {
   height: 100vh;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 0 20px;
-  height: 60px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--color-divider-soft);
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
+}
+
+.header-breadcrumb {
+  font-size: 14px;
 }
 
 .collapse-btn,
 .hamburger-btn {
   cursor: pointer;
-  color: #666;
-  transition: color 0.2s ease;
+  color: var(--color-ink-muted-48);
+  transition: all 0.2s ease-out;
+  padding: 6px;
+  border-radius: 6px;
 }
 
 .collapse-btn:hover,
 .hamburger-btn:hover {
-  color: #409eff;
+  color: var(--color-primary);
+  background: rgba(0, 102, 204, 0.06);
 }
 
 .hamburger-btn {
@@ -264,28 +344,68 @@ async function handleChangePassword() {
 .user-dropdown {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #333;
-  padding: 6px 10px;
+  color: var(--color-ink);
+  padding: 4px 12px 4px 4px;
   border-radius: 999px;
-  background: #f5f7fa;
+  background: var(--color-surface-pearl);
+  transition: all 0.2s ease-out;
+}
+
+.user-dropdown:hover {
+  background: var(--color-canvas-parchment);
+}
+
+.user-avatar {
+  background: var(--color-primary);
+  font-weight: 600;
 }
 
 .username {
   font-size: 14px;
+  font-weight: 500;
 }
 
+.dropdown-icon {
+  font-size: 12px;
+  color: var(--color-ink-muted-48);
+}
+
+/* ===== Main Content ===== */
 .layout-main {
+  flex: 1;
   min-height: 0;
-  padding: 20px;
+  padding: 32px 40px;
   overflow: auto;
+}
+
+.content-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ===== Transitions ===== */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .mobile-overlay {
   display: none;
 }
 
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .layout-aside {
     position: fixed;
@@ -297,7 +417,7 @@ async function handleChangePassword() {
   }
 
   .layout-aside.is-mobile-open {
-    width: 240px !important;
+    width: 248px !important;
   }
 
   .hamburger-btn {
@@ -312,17 +432,17 @@ async function handleChangePassword() {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(2px);
     z-index: 1999;
   }
 
   .layout-header {
-    padding: 0 12px;
+    padding: 0 16px;
   }
 
   .layout-main {
-    padding: 12px;
+    padding: 20px 16px;
   }
 
   .username {

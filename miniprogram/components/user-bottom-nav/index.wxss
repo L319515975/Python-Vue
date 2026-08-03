@@ -11,9 +11,9 @@
   flex: 1;
   min-height: 108rpx;
   padding: 16rpx 12rpx;
-  border-radius: 16rpx;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1rpx solid #dbe4ee;
+  border-radius: var(--app-radius-sm);
+  background: var(--app-color-canvas);
+  border: 1rpx solid var(--app-color-hairline);
   box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.08);
   box-sizing: border-box;
   display: flex;
@@ -23,21 +23,21 @@
   gap: 6rpx;
 }
 .nav-item-active {
-  border-color: #0891b2;
-  background: linear-gradient(135deg, #0891b2 0%, #0f766e 100%);
+  border-color: var(--app-color-primary);
+  background: var(--app-color-primary);
 }
 .nav-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--app-color-ink);
   line-height: 1.2;
 }
 .nav-sub {
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--app-color-ink-muted-48);
   line-height: 1.2;
 }
 .nav-item-active .nav-title,
 .nav-item-active .nav-sub {
-  color: #fff;
+  color: var(--app-color-on-primary);
 }

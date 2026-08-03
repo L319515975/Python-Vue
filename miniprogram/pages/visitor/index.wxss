@@ -4,8 +4,8 @@
 }
 
 .hero-card {
-  background: linear-gradient(135deg, #0f8bff 0%, #1d4ed8 62%, #0ea5e9 100%);
-  color: #fff;
+  background: var(--app-color-surface-tile-1);
+  color: var(--app-color-body-on-dark);
   overflow: hidden;
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow: 0 18rpx 44rpx rgba(15, 139, 255, 0.18);
@@ -13,7 +13,7 @@
 
 .hero-card .title,
 .hero-card .sub {
-  color: #fff;
+  color: var(--app-color-body-on-dark);
 }
 
 .hero-top,
@@ -93,8 +93,8 @@
 }
 
 .field-shell.is-focused {
-  border-color: #0f8bff;
-  box-shadow: 0 0 0 4rpx rgba(15, 139, 255, 0.08);
+  border-color: var(--app-color-primary);
+  box-shadow: 0 0 0 4rpx rgba(0, 102, 204, 0.08);
 }
 
 .field-input,

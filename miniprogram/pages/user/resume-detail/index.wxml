@@ -6,13 +6,38 @@
   </block>
 
   <block wx:elif="{{resume}}">
-    <view class="card hero-card surface">
-      <view class="hero-top">
-        <view class="hero-copy">
-          <view class="title">{{resume.title || '我的简历'}}</view>
-          <view class="sub">{{resume.summary || '暂无简介'}}</view>
+    <!-- ===== 首屏核心信息 Hero ===== -->
+    <view class="hero-card surface">
+      <view class="hero-bg-decor"></view>
+      <view class="hero-row">
+        <view class="hero-avatar">
+          <t-icon name="user" size="56rpx" />
         </view>
-        <t-button variant="outline" shape="round" icon="edit" bind:tap="goEdit">编辑</t-button>
+        <view class="hero-info">
+          <view class="hero-name">{{resume.title || '我的简历'}}</view>
+          <view class="hero-job-intent">{{resume.job_intent || '求职意向待定'}}</view>
+          <view class="hero-summary">{{resume.summary || '暂无简介，点击编辑补充'}}</view>
+        </view>
+        <view class="hero-edit-btn" hover-class="hero-edit-hover" bind:tap="goEdit">
+          <t-icon name="edit" size="28rpx" />
+          <text>编辑</text>
+        </view>
+      </view>
+      <view class="hero-meta">
+        <view class="hero-meta-item">
+          <view class="hero-meta-num">{{completionRate}}%</view>
+          <view class="hero-meta-label">完整度</view>
+        </view>
+        <view class="hero-meta-divider"></view>
+        <view class="hero-meta-item">
+          <view class="hero-meta-num">{{visitor.used}}</view>
+          <view class="hero-meta-label">AI 访问</view>
+        </view>
+        <view class="hero-meta-divider"></view>
+        <view class="hero-meta-item">
+          <view class="hero-meta-num">{{aiPolishCount}}</view>
+          <view class="hero-meta-label">AI 润色</view>
+        </view>
       </view>
       <view class="hero-tags">
         <t-tag theme="primary" variant="light" shape="round" size="small">状态：{{resume.status || '草稿'}}</t-tag>
@@ -21,20 +46,42 @@
       </view>
     </view>
 
+    <!-- ===== AI System Prompt 折叠面板 ===== -->
+    <view class="card surface ai-prompt-shell" hover-class="shell-hover" bind:tap="togglePrompt" hover-stay-time="80">
+      <view class="ai-prompt-head">
+        <view class="ai-prompt-left">
+          <view class="ai-prompt-dot"></view>
+          <view class="ai-prompt-title">HR 专属 AI 提示词已开启</view>
+        </view>
+        <view class="ai-prompt-arrow {{promptExpanded ? 'ai-prompt-arrow-up' : ''}}">
+          <t-icon name="chevron-down" size="28rpx" />
+        </view>
+      </view>
+      <view wx:if="{{promptExpanded}}" class="ai-prompt-body">
+        <view class="ai-prompt-text">{{aiPromptText}}</view>
+        <view class="ai-prompt-actions">
+          <t-button size="small" variant="outline" shape="round" bind:tap="editPrompt" catchtap="editPrompt">编辑提示词</t-button>
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 模块管理 ===== -->
     <view class="card surface section-card" wx:if="{{moduleList.length}}">
       <view class="section-head">
         <view>
           <view class="section-title">模块管理</view>
-          <view class="section-subtitle">控制对外展示的内容范围。</view>
+          <view class="section-subtitle">控制对外展示的内容范围</view>
         </view>
       </view>
-      <view class="module-grid t-mt-4">
+      <view class="module-grid">
         <view
           wx:for="{{moduleList}}"
           wx:key="name"
           wx:for-item="module"
           class="module-item {{module.checked ? 'module-item-active' : ''}}"
           data-name="{{module.name}}"
+          hover-class="module-item-hover"
+          hover-stay-time="80"
           bindtap="toggleModule"
         >
           <text class="module-label">{{module.label}}</text>
@@ -43,26 +90,49 @@
       </view>
     </view>
 
-    <block wx:for="{{sections}}" wx:key="title" wx:for-item="section">
+    <!-- ===== 内容流：时间轴/卡片流 ===== -->
+    <block wx:for="{{sections}}" wx:key="title" wx:for-item="section" wx:for-index="secIdx">
       <view class="card surface section-card">
-        <view class="section-title">{{section.title}}</view>
+        <view class="section-head">
+          <view>
+            <view class="section-title">{{section.title}}</view>
+            <view class="section-subtitle" wx:if="{{section.items}}">{{section.items.length}} 条记录</view>
+          </view>
+        </view>
+
         <block wx:if="{{section.kind == 'object'}}">
-          <view class="section-item" wx:for="{{section.items}}" wx:key="title" wx:for-item="row">
-            <text class="item-title">{{row.title}}</text>
-            <text class="item-desc">{{row.desc}}</text>
+          <view class="timeline">
+            <view
+              class="timeline-item"
+              wx:for="{{section.items}}"
+              wx:key="title"
+              wx:for-item="row"
+              wx:for-index="idx"
+            >
+              <view class="timeline-rail">
+                <view class="timeline-dot"></view>
+                <view wx:if="{{idx < section.items.length - 1}}" class="timeline-line"></view>
+              </view>
+              <view class="timeline-content">
+                <view class="item-title">{{row.title}}</view>
+                <view class="item-desc">{{row.desc}}</view>
+              </view>
+            </view>
           </view>
         </block>
+
         <block wx:else>
           <view class="text-item" wx:for="{{section.items}}" wx:key="*this" wx:for-item="text">{{text}}</view>
         </block>
       </view>
     </block>
 
+    <!-- ===== 标签 ===== -->
     <view class="card surface section-card">
       <view class="section-head">
         <view>
           <view class="section-title">标签</view>
-          <view class="section-subtitle">为简历补充检索与分类信息。</view>
+          <view class="section-subtitle">为简历补充检索与分类信息</view>
         </view>
         <t-tag theme="primary" variant="light" shape="round" size="small">{{tags.length}} 个</t-tag>
       </view>
@@ -73,6 +143,8 @@
           wx:key="id"
           wx:for-item="tag"
           data-value="{{tag.id}}"
+          hover-class="tag-hover"
+          hover-stay-time="80"
           bindtap="toggleTag"
         >
           {{tag.name}}
@@ -81,11 +153,12 @@
       <t-empty wx:else description="暂无标签" />
     </view>
 
+    <!-- ===== 访客链接 ===== -->
     <view class="card surface section-card">
       <view class="section-head">
         <view>
           <view class="section-title">访客链接</view>
-          <view class="section-subtitle">分享后可给外部查看或下载简历。</view>
+          <view class="section-subtitle">分享后可给外部查看或下载简历</view>
         </view>
         <t-tag theme="primary" variant="light" shape="round" size="small">{{visitor.enabled ? '已启用' : '未启用'}}</t-tag>
       </view>
@@ -107,15 +180,20 @@
       </block>
     </view>
 
+    <!-- ===== 底部操作 ===== -->
     <view class="card surface action-card">
       <t-button block="{{true}}" theme="primary" shape="round" bind:tap="exportPdf">下载 PDF</t-button>
       <t-button class="t-mt-3" block="{{true}}" variant="outline" shape="round" bind:tap="refresh">刷新</t-button>
     </view>
 
-    <view class="ai-fab" bind:tap="toggleAi">
-      <t-icon name="chat" size="32rpx" />
+    <!-- ===== AI 访客模式悬浮入口（呼吸灯） ===== -->
+    <view class="ai-fab" hover-class="ai-fab-hover" hover-stay-time="80" bind:tap="toggleAi">
+      <view class="ai-fab-pulse"></view>
+      <view class="ai-fab-pulse ai-fab-pulse-delay"></view>
+      <t-icon name="chat" size="34rpx" />
     </view>
 
+    <!-- ===== AI 问答面板 ===== -->
     <view class="ai-panel {{aiVisible ? 'ai-panel-show' : ''}}">
       <view class="ai-panel-head">
         <view>
@@ -144,8 +222,8 @@
   </block>
 
   <view wx:else class="card surface empty-card">
-    <view class="title">暂无简历</view>
-    <view class="sub">先创建一份简历，再回来查看。</view>
+    <view class="empty-title">暂无简历</view>
+    <view class="empty-sub">先创建一份简历，再回来查看。</view>
     <t-button class="t-mt-4" theme="primary" shape="round" bind:tap="goEdit">创建简历</t-button>
   </view>
 

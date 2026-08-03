@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="visitor-page" v-loading="loading">
     <template v-if="error && !loading">
       <div class="error-page">
@@ -452,7 +452,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #409eff;
+  color: #0066cc;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -488,7 +488,7 @@ onMounted(async () => {
 .header-shape-1 {
   width: 300px;
   height: 300px;
-  background: #409eff;
+  background: #0066cc;
   top: -80px;
   right: -60px;
 }
@@ -723,7 +723,7 @@ onMounted(async () => {
 .polish-result {
   margin-top: 12px;
   padding: 12px;
-  background: #f0f9eb;
+  background: #ecfdf3;
   border-radius: 8px;
   border: 1px solid #e1f3d8;
 }
@@ -762,7 +762,7 @@ onMounted(async () => {
   color: #1a1a2e;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #409eff;
+  border-bottom: 2px solid #0066cc;
 }
 
 .timeline {
@@ -780,7 +780,7 @@ onMounted(async () => {
   top: 8px;
   bottom: 8px;
   width: 2px;
-  background: linear-gradient(180deg, #409eff 0%, #d9ecff 100%);
+  background: #0066cc;
   border-radius: 1px;
 }
 
@@ -798,9 +798,9 @@ onMounted(async () => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #409eff;
+  background: #0066cc;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #409eff;
+  box-shadow: 0 0 0 2px #0066cc;
   z-index: 1;
 }
 
@@ -823,7 +823,7 @@ onMounted(async () => {
 }
 
 .sub-info.highlight {
-  color: #409eff;
+  color: #0066cc;
   font-weight: 500;
 }
 
@@ -918,7 +918,7 @@ onMounted(async () => {
 
 .skeleton-header {
   padding: 40px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: #272729;
   border-radius: 16px;
   margin-bottom: 32px;
 }
